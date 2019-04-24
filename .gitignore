@@ -2,7 +2,7 @@
 __pycache__/
 *.py[cod]
 *$py.class
-
+.vscode/
 # C extensions
 *.so
 
@@ -91,3 +91,6 @@ ENV/
 
 # SQLite3
 db.sqlite3
+
+#VSCode
+.vscode/

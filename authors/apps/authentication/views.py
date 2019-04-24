@@ -4,6 +4,8 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from drf_yasg.utils import swagger_auto_schema
+
 from .renderers import UserJSONRenderer
 from .serializers import (
     LoginSerializer, RegistrationSerializer, UserSerializer
@@ -11,10 +13,18 @@ from .serializers import (
 
 
 class RegistrationAPIView(APIView):
+
     # Allow any user (authenticated or not) to hit this endpoint.
     permission_classes = (AllowAny,)
     renderer_classes = (UserJSONRenderer,)
     serializer_class = RegistrationSerializer
+
+    @swagger_auto_schema(
+        operation_description="Regester a new User.",
+        operation_id="Sign up as a new user",
+        request_body=serializer_class,
+        responses={201: serializer_class(many=False), 400: "BAD REQUEST"},
+    )
 
     def post(self, request):
         user = request.data.get('user', {})
@@ -30,9 +40,17 @@ class RegistrationAPIView(APIView):
 
 
 class LoginAPIView(APIView):
+    
     permission_classes = (AllowAny,)
     renderer_classes = (UserJSONRenderer,)
     serializer_class = LoginSerializer
+
+    @swagger_auto_schema(
+        operation_description="Login a User.",
+        operation_id="Login a user",
+        request_body=serializer_class,
+        responses={201: serializer_class(many=False), 400: "BAD REQUEST"},
+    )
 
     def post(self, request):
         user = request.data.get('user', {})
@@ -48,9 +66,23 @@ class LoginAPIView(APIView):
 
 
 class UserRetrieveUpdateAPIView(RetrieveUpdateAPIView):
+
+    """
+    retrieve:
+    Get user details
+    update:
+    Edit user details
+    """
+
     permission_classes = (IsAuthenticated,)
     renderer_classes = (UserJSONRenderer,)
     serializer_class = UserSerializer
+
+    @swagger_auto_schema(
+        operation_id="Retrieve User data",
+        request_body=serializer_class,
+        responses={201: serializer_class(many=False), 400: "BAD REQUEST"},
+    )
 
     def retrieve(self, request, *args, **kwargs):
         # There is nothing to validate or save here. Instead, we just want the
@@ -59,6 +91,12 @@ class UserRetrieveUpdateAPIView(RetrieveUpdateAPIView):
         serializer = self.serializer_class(request.user)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @swagger_auto_schema(
+        operation_description="Update User data.",
+        request_body=UserSerializer,
+        responses={201: UserSerializer(many=False), 400: "BAD REQUEST"},
+    )
 
     def update(self, request, *args, **kwargs):
         serializer_data = request.data.get('user', {})
