@@ -1,0 +1,24 @@
+[report]
+omit =
+    *.pyc
+    */__init__.py
+    */__pycache__/*
+    */admin.py
+    */apps.py
+    */home/travis/virtualenv/*
+    */manage.py
+    */migrations/*
+    */models.py
+    */python?.?/*
+    */serializers.py
+    */static/*
+    */staticfiles/*
+    */tests/*
+    */urls.py
+    */urls/*
+    */usr/lib/python3/*
+    */venv/*
+    */wsgi.py
+    *settings/*
+    *wsgi.py
+    */settings.py
