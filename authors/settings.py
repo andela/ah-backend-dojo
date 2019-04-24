@@ -39,7 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
-    # 'corsheaders',
+    'corsheaders',
     'django_extensions',
     'rest_framework',
 
@@ -51,7 +51,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    # 'corsheaders.middleware.CorsMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -84,8 +84,12 @@ WSGI_APPLICATION = 'authors.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME':os.environ.get('DB_NAME'),
+        'USER':os.environ.get('DB_USER'),
+        'PASSWORD':os.environ.get('DB_PASS'),
+        'HOST':os.environ.get('DB_HOST'),
+        'PORT':os.environ.get('DB_PORT')
     }
 }
 
@@ -125,10 +129,10 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
-# CORS_ORIGIN_WHITELIST = (
-#     '0.0.0.0:4000',
-#     'localhost:4000',
-# )
+CORS_ORIGIN_WHITELIST = (
+    '0.0.0.0:4000',
+    'localhost:4000',
+)
 
 # Tell Django about the custom `User` model we created. The string
 # `authentication.User` tells Django we are referring to the `User` model in
@@ -141,6 +145,6 @@ REST_FRAMEWORK = {
     'NON_FIELD_ERRORS_KEY': 'error',
 
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        # 'authors.apps.authentication.backends.JWTAuthentication',
+        
     ),
 }

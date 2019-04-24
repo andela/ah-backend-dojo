@@ -6,6 +6,7 @@ django-extensions==2.1.6
 djangorestframework==3.9.2
 more-itertools==7.0.0
 pluggy==0.9.0
+psycopg2-binary==2.8.2
 py==1.8.0
 PyJWT==1.7.1
 pytest==4.4.1
