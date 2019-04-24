@@ -15,12 +15,15 @@ inflection==0.3.1
 itypes==1.1.0
 Jinja2==2.10.1
 MarkupSafe==1.1.1
+gunicorn==19.9.0
 more-itertools==7.0.0
 pluggy==0.9.0
 psycopg2-binary==2.8.2
 py==1.8.0
 PyJWT==1.7.1
 pytest==4.4.1
+pytest-cov==2.6.1
+pytest-django==3.4.8
 pytz==2019.1
 PyYAML==5.1
 requests==2.21.0
@@ -28,3 +31,4 @@ ruamel.yaml==0.15.94
 six==1.10.0
 uritemplate==3.0.0
 urllib3==1.24.2
+whitenoise==4.1.2
