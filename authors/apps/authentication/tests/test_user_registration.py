@@ -161,6 +161,7 @@ class TestQuestionViews(TestCase):
             data=json.dumps(self.user),
         )
         self.assertEqual(response.status_code, 201)
-        self.assertEqual(
-            response.data, {"email": "arthur@email.com", "username": "kalsmic"}
-        )
+        self.assertEqual(response.data["email"], "arthur@email.com")
+        self.assertEqual(response.data["username"], "kalsmic")
+        self.assertIn("token",response.data)
+

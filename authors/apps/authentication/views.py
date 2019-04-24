@@ -3,13 +3,23 @@ from rest_framework.generics import RetrieveUpdateAPIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework import authentication, permissions
+from rest_framework.decorators import api_view, permission_classes
 
 from drf_yasg.utils import swagger_auto_schema
 
 from .renderers import UserJSONRenderer
 from .serializers import (
-    LoginSerializer, RegistrationSerializer, UserSerializer
+    LoginSerializer,
+    RegistrationSerializer,
+    UserSerializer,
 )
+
+
+@api_view()
+@permission_classes((IsAuthenticated,))
+def hello_authors_heaven(request):
+    return Response({"message": "Hello, world!"})
 
 
 class RegistrationAPIView(APIView):
@@ -25,9 +35,8 @@ class RegistrationAPIView(APIView):
         request_body=serializer_class,
         responses={201: serializer_class(many=False), 400: "BAD REQUEST"},
     )
-
     def post(self, request):
-        user = request.data.get('user', {})
+        user = request.data.get("user", {})
 
         # The create serializer, validate serializer, save serializer pattern
         # below is common and you will see it a lot throughout this course and
@@ -40,7 +49,7 @@ class RegistrationAPIView(APIView):
 
 
 class LoginAPIView(APIView):
-    
+
     permission_classes = (AllowAny,)
     renderer_classes = (UserJSONRenderer,)
     serializer_class = LoginSerializer
@@ -51,9 +60,8 @@ class LoginAPIView(APIView):
         request_body=serializer_class,
         responses={201: serializer_class(many=False), 400: "BAD REQUEST"},
     )
-
     def post(self, request):
-        user = request.data.get('user', {})
+        user = request.data.get("user", {})
 
         # Notice here that we do not call `serializer.save()` like we did for
         # the registration endpoint. This is because we don't actually have
@@ -83,7 +91,6 @@ class UserRetrieveUpdateAPIView(RetrieveUpdateAPIView):
         request_body=serializer_class,
         responses={201: serializer_class(many=False), 400: "BAD REQUEST"},
     )
-
     def retrieve(self, request, *args, **kwargs):
         # There is nothing to validate or save here. Instead, we just want the
         # serializer to handle turning our `User` object into something that
@@ -97,9 +104,8 @@ class UserRetrieveUpdateAPIView(RetrieveUpdateAPIView):
         request_body=UserSerializer,
         responses={201: UserSerializer(many=False), 400: "BAD REQUEST"},
     )
-
     def update(self, request, *args, **kwargs):
-        serializer_data = request.data.get('user', {})
+        serializer_data = request.data.get("user", {})
 
         # Here is that serialize, validate, save pattern we talked about
         # before.
@@ -110,4 +116,3 @@ class UserRetrieveUpdateAPIView(RetrieveUpdateAPIView):
         serializer.save()
 
         return Response(serializer.data, status=status.HTTP_200_OK)
-
