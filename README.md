@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/andela/ah-backend-dojo.svg?branch=develop)](https://travis-ci.org/andela/ah-backend-dojo)
+
 Authors Haven - A Social platform for the creative at heart.
 =======
 
