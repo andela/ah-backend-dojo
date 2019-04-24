@@ -64,3 +64,4 @@ urlpatterns = [
         name="schema-swagger-ui",
     ),
 ]
+
