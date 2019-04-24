@@ -3,12 +3,22 @@ language: python
 python:
   - "3.6"
 
-addons:
-  postgresql: "9.6"
+services:
+  - postgresql
+
+before_script:
+  - psql -c 'create database authors_dojo;' -U postgres
+  - python manage.py makemigrations
+  - python manage.py migrate
 
 install:
   - pip install -r requirements.txt
-
+  - pip install coverage
+  - pip install coveralls
+ 
 script:
-  - python manage.py makemigrations
-  - python manage.py migrate
+  - python manage.py test
+  - coverage run --source='authors/apps' manage.py test && coverage report
+
+after_success:
+  - coveralls
