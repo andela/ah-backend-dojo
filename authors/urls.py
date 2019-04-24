@@ -1,5 +1,4 @@
 """authors URL Configuration
-
 The `urlpatterns` list routes URLs to views. For more information please see:
     https://docs.djangoproject.com/en/1.11/topics/http/urls/
 Examples:
@@ -41,10 +40,27 @@ schema_view = get_schema_view(
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include('authors.apps.authentication.urls')),
+
+schema_view = get_schema_view(
+   openapi.Info(
+      title="Authors Haven",
+      default_version='v1',
+      description=
+      ("A community of like minded authors "
+      "to foster inspiration and innovation "
+      "by leveraging the modern web."),
+      license=openapi.License(name="Andela License"),
+   ),
+   public=True,
+   permission_classes=(permissions.AllowAny,),
+)
+
+urlpatterns = [
+    path('admin/', admin.site.urls),
+    path('api/', include('authors.apps.authentication.urls')),
     path(
         "docs/",
         schema_view.with_ui("swagger", cache_timeout=0),
         name="schema-swagger-ui",
     ),
 ]
-
