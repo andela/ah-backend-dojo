@@ -43,7 +43,7 @@ class RegistrationSerializer(serializers.ModelSerializer):
         if error:
             raise serializers.ValidationError(str(error))
         else:
-            return None
+            return value
 
     def validate_username(self, value):
         if len(str(value).split(" ")) > 1:
