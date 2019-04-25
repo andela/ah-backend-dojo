@@ -10,7 +10,7 @@ class TestLogin(APITestCase):
             "user": {
                 "username": "janee",
                 "email": "janee@bg.com",
-                "password": "simplepassword"
+                "password": "Simplepassword2"
             }
         }
         
@@ -59,7 +59,7 @@ class TestLogin(APITestCase):
     def test_login_success(self):
         response = self.client.post(
             self.login_url, 
-            data={'user':{'email':'janee@bg.com', 'password':'simplepassword'}},
+            data={'user':{'email':'janee@bg.com', 'password':'Simplepassword2'}},
             format='json'
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
