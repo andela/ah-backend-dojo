@@ -71,7 +71,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     # will simply offer users a way to deactivate their account instead of
     # letting them delete it. That way they won't show up on the site anymore,
     # but we can still analyze the data.
-    is_active = models.BooleanField(default=True)
+    is_active = models.BooleanField(default=False)
 
     # The `is_staff` flag is expected by Django to determine who can and cannot
     # log into the Django admin site. For most users, this flag will always be
@@ -84,7 +84,10 @@ class User(AbstractBaseUser, PermissionsMixin):
     # A timestamp reprensenting when this object was last updated.
     updated_at = models.DateTimeField(auto_now=True)
 
-    # More fields required by Django when specifying a custom user model.
+    # When a user is first registered, this field is FALSE unti 
+    # the activate their account via email. They cannot login
+    # until this field is TRUE
+    is_email_verified = models.BooleanField(default=False)
 
     # The `USERNAME_FIELD` property tells us which field we will use to log in.
     # In this case, we want that to be the email field.

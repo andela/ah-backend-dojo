@@ -1,5 +1,6 @@
 from rest_framework.test import APITestCase, APIClient
 from rest_framework import status
+from ..models import User
 
 class TestLogin(APITestCase):
     login_url = '/api/users/login/'
@@ -57,6 +58,9 @@ class TestLogin(APITestCase):
 
 
     def test_login_success(self):
+        user = User.objects.get(email='janee@bg.com')
+        user.is_active = True
+        user.save()
         response = self.client.post(
             self.login_url, 
             data={'user':{'email':'janee@bg.com', 'password':'Simplepassword2'}},

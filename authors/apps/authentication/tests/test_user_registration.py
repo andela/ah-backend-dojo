@@ -1,12 +1,16 @@
 from django.urls import reverse
+from django.conf import settings
 from django.test import TestCase
 from rest_framework.test import APIClient
+from django.utils.http import urlsafe_base64_encode
+from django.utils.encoding import force_bytes
+from django.contrib.auth.tokens import default_token_generator
 import json
 import pytest
 from ..models import User
 
 
-class TestQuestionViews(TestCase):
+class TestUserRegistrationView(TestCase):
     def setUp(self):
         self.client = APIClient()
         self.user = {
@@ -164,4 +168,67 @@ class TestQuestionViews(TestCase):
         self.assertEqual(response.data["email"], "arthur@email.com")
         self.assertEqual(response.data["username"], "kalsmic")
         self.assertIn("token",response.data)
+
+    def test_succesful_user_activation(self):
+        '''
+        Ensure that a user is succesfully activated
+        '''
+        uid = self.user2.id
+        kwargs = {
+        "uidb64": urlsafe_base64_encode(force_bytes(uid)).decode(),
+        "token": default_token_generator.make_token(self.user2)
+    }
+        activation_url = reverse("activate_user_account", kwargs=kwargs)
+        self.assertFalse(self.user2.is_active)
+        
+        response = self.client.get(
+           activation_url,
+           content_type="application/json",
+        )
+        self.assertEqual(response.data, "Activation successful")
+
+    def test_user_activation_with_non_existent_user(self):
+        '''
+        Ensures that a user who does not exist cannot be activated
+        '''
+        uid = 10
+        kwargs = {
+        "uidb64": urlsafe_base64_encode(force_bytes(uid)).decode(),
+        "token": default_token_generator.make_token(self.user2)
+        }
+
+        activation_url = reverse("activate_user_account", kwargs=kwargs)
+        self.assertFalse(self.user2.is_active)
+        
+        response = self.client.get(
+           activation_url,
+           content_type="application/json",
+        )
+        self.assertEqual(response.data, "Activation failed")
+
+    def test_user_activation_expiry(self):
+        '''
+        Ensures that an activation can expire
+        '''
+        uid = self.user2.id
+
+        kwargs = {
+        "uidb64": urlsafe_base64_encode(force_bytes(uid)).decode(),
+        "token": default_token_generator.make_token(self.user2)
+        }
+
+        activation_url = reverse("activate_user_account", kwargs=kwargs)
+        self.assertFalse(self.user2.is_active)
+        settings.PASSWORD_RESET_TIMEOUT_DAYS = -1
+
+        response = self.client.get(
+           activation_url,
+           content_type="application/json",
+        )
+        self.assertEqual(response.data, "Activation link has expired")
+
+
+
+        
+
 

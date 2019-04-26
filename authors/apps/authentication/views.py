@@ -1,14 +1,28 @@
+from django.urls import reverse
+from django.contrib.auth import login
+from django.contrib.auth.tokens import default_token_generator
+from django.conf import settings
+from django.utils.encoding import force_bytes
+from django.utils.encoding import force_text
+from django.utils.http import urlsafe_base64_encode
+from django.utils.http import urlsafe_base64_decode
+from django.core.mail import EmailMultiAlternatives
+from django.template.loader import render_to_string
+
 from rest_framework import status
 from rest_framework.generics import RetrieveUpdateAPIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.authtoken.models import Token
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import authentication, permissions
 from rest_framework.decorators import api_view, permission_classes
 
 from drf_yasg.utils import swagger_auto_schema
+from drf_yasg.utils import swagger_auto_schema
 
 from .renderers import UserJSONRenderer
+from .models import User
 from .serializers import (
     LoginSerializer,
     RegistrationSerializer,
@@ -44,12 +58,16 @@ class RegistrationAPIView(APIView):
         serializer = self.serializer_class(data=user)
         serializer.is_valid(raise_exception=True)
         serializer.save()
+        #send activation email
+        uid = User.objects.get(email= user['email']).id
+        user['id'] = uid
+        send_account_activation_email(request, user)
 
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
 class LoginAPIView(APIView):
-
+    
     permission_classes = (AllowAny,)
     renderer_classes = (UserJSONRenderer,)
     serializer_class = LoginSerializer
@@ -116,3 +134,57 @@ class UserRetrieveUpdateAPIView(RetrieveUpdateAPIView):
         serializer.save()
 
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+def send_account_activation_email(request, user):
+    '''
+    Function that sends an email
+    '''
+    text_content = 'Account Activation Email'
+    subject = "Author's Haven"
+    template_name = "activation.html"
+    recipients = [user['email']]
+    uid = user['id']
+    user_obj = User.objects.get(pk=uid)
+
+    kwargs = {
+        "uidb64": urlsafe_base64_encode(force_bytes(uid)).decode(),
+        "token": default_token_generator.make_token(user_obj)
+    }
+
+    activation_url = reverse("activate_user_account", kwargs=kwargs)
+
+    activate_url = "{0}://{1}{2}".format(request.scheme,
+                    request.get_host(), activation_url)
+
+    context = {
+        'user': user,
+        'activate_url': activate_url
+    }
+
+    html_content = render_to_string(template_name, context)
+    email = EmailMultiAlternatives(subject, text_content,
+            settings.EMAIL_HOST_USER, recipients)
+    email.attach_alternative(html_content, "text/html")
+
+    email.send()
+
+class ActivateUserAccount(APIView):
+    """
+    Activate an account
+    """
+    def get(self, request, **kwargs):
+
+        try:
+            uid = force_text(urlsafe_base64_decode(kwargs['uidb64']))
+            user = User.objects.get(pk=uid)
+
+        except User.DoesNotExist:
+            return Response("Activation failed")
+
+        if user and default_token_generator.check_token(user, kwargs['token']):
+            user.is_email_verified = True
+            user.is_active = True
+            user.save()
+            return Response("Activation successful")   
+        else:
+            return Response("Activation link has expired")         
