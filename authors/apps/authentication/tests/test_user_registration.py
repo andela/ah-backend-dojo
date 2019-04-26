@@ -180,7 +180,7 @@ class TestUserRegistrationView(TestCase):
     }
         activation_url = reverse("activate_user_account", kwargs=kwargs)
         self.assertFalse(self.user2.is_active)
-        
+
         response = self.client.get(
            activation_url,
            content_type="application/json",
@@ -199,7 +199,7 @@ class TestUserRegistrationView(TestCase):
 
         activation_url = reverse("activate_user_account", kwargs=kwargs)
         self.assertFalse(self.user2.is_active)
-        
+
         response = self.client.get(
            activation_url,
            content_type="application/json",
@@ -226,9 +226,3 @@ class TestUserRegistrationView(TestCase):
            content_type="application/json",
         )
         self.assertEqual(response.data, "Activation link has expired")
-
-
-
-        
-
-

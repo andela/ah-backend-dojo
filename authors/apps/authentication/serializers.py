@@ -30,30 +30,30 @@ class RegistrationSerializer(serializers.ModelSerializer):
 
         return User.objects.create_user(**validated_data)
 
-    def validate_password(self, value):
+    def validate_password(self, password):
         error = None
-        if not re.search("[0-9]", value):
+        if not re.search("[0-9]", password):
             # Check if password contains a digit
             error = "Password should be alpha Numeric"
-        elif not re.search("[A-Z]", value):
+        elif not re.search("[A-Z]", password):
             # Check if password contains an upper case letter
             error = "Password should contain at least one Upper Case letter"
-        elif not re.search("[a-z]", value):
+        elif not re.search("[a-z]", password):
             # Check if password contains a lower case letter
             error = "Password should contain at least one lower Case letter"
         if error:
             raise serializers.ValidationError(str(error))
         else:
-            return value
+            return password
 
-    def validate_username(self, value):
-        if len(str(value).split(" ")) > 1:
+    def validate_username(self, username):
+        if len(str(username).split(" ")) > 1:
             # Check if username contains a space
             raise serializers.ValidationError(
                 "Username cannot contain a space"
             )
 
-        return value
+        return username
 
 
 class LoginSerializer(serializers.Serializer):
