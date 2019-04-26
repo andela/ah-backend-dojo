@@ -96,4 +96,5 @@ db.sqlite3
 .DS_store
 
 # vscode
+#VSCode
 .vscode/

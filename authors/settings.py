@@ -31,6 +31,17 @@ ALLOWED_HOSTS = [
     'ah-backend-dojo-dev.herokuapp.com'
 ]
 
+#EMAIL SETTINGS for gmail
+EMAIL_USE_TLS = True
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
+EMAIL_PORT = 587
+
+
+# EMAIL_BACKEND = 'django.core.mail.backends.locmem.EmailBackend'
+
+PASSWORD_RESET_TIMEOUT_DAYS = 1
 # Application definition
 
 INSTALLED_APPS = [
@@ -48,6 +59,7 @@ INSTALLED_APPS = [
     'authors.apps.authentication',
     'authors.apps.core',
     'authors.apps.profiles',
+    'authors.apps.articles',
     'drf_yasg',
 ]
 
@@ -68,7 +80,7 @@ ROOT_URLCONF = 'authors.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': ['./templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -155,5 +167,6 @@ REST_FRAMEWORK = {
     'NON_FIELD_ERRORS_KEY': 'error',
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'authors.apps.authentication.backends.JWTAuthentication',
+        
     ),
 }

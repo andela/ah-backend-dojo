@@ -9,6 +9,8 @@ omit =
     */manage.py
     */migrations/*
     */models.py
+    */permissions.py
+    */renderers.py
     */python?.?/*
     */serializers.py
     */static/*
