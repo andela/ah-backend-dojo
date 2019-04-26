@@ -115,7 +115,7 @@ class TestUserRegistrationView(TestCase):
             response.data["errors"]["password"][0],
             "This field may not be blank.",
         )
-
+        
     @pytest.mark.xfail
     def test_register_with_password_same_as_username(self):
 
