@@ -16,7 +16,8 @@ class BaseTest(APITestCase):
             "article": {
                 "title": "Article 2 title",
                 "body": "Article body",
-                "description": "Article description"
+                "description": "Article description",
+                "article_tags":["python"]
                 }
         }
         self.client.force_authenticate(user=self.user)

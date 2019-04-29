@@ -2,12 +2,16 @@ from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django.utils.text import slugify
 from rest_framework import status
+from django.core.exceptions import ObjectDoesNotExist
 from django.utils import timezone
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from .models import Article
 from .serializers import ArticleSerializer
+from authors.apps.tag_article.views import ArticleTagViewSet
+from authors.apps.tag_article.models import ArticleTag
+from authors.apps.tag_article.serializers import ArticleTagSerializer
 
 class Articles(APIView):
     #Route protection
@@ -29,6 +33,9 @@ class Articles(APIView):
         current_user = request.user
         data["slug"] = slugify(data["title"])
         data["author"] = current_user.username
+
+        self.create_tag_if_not_exist(data.get('article_tags'))
+
         last_article = Article.objects.last()
         article_serializer = ArticleSerializer(last_article, many=False)
         last_article = article_serializer.data
@@ -43,6 +50,20 @@ class Articles(APIView):
         return Response(
                 serializer.errors, status=status.HTTP_400_BAD_REQUEST
             )
+
+    def create_tag_if_not_exist(self, provided_tags):
+        """method to create a tag if it doesn't exist"""
+        my_article_tags = ArticleTag.objects.all()
+        print(my_article_tags)
+        
+        try:
+            for provided_tag in provided_tags:
+                ArticleTag.objects.get(tag_text=provided_tag)
+                
+        except ObjectDoesNotExist:
+            serializer = ArticleTagSerializer(data={"tag_text": provided_tag})
+            serializer.is_valid(serializer)
+            ArticleTagViewSet.perform_create(Articles,serializer)
 
 class OneArticle(APIView):
     #Route protection
@@ -80,3 +101,7 @@ class OneArticle(APIView):
         article = get_object_or_404(Article, pk=article_id, delete_status=False)
         article.delete()
         return Response({"messege": "article deleted successfully"}, status=status.HTTP_200_OK)
+
+                
+
+

@@ -16,8 +16,10 @@ Including another URLconf
 from django.urls import path, include
 from django.contrib import admin
 from rest_framework import permissions
+from rest_framework.routers import DefaultRouter
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
+from authors.apps.tag_article.views import ArticleTagViewSet
 
 schema_view = get_schema_view(
    openapi.Info(
@@ -33,7 +35,11 @@ schema_view = get_schema_view(
    permission_classes=(permissions.AllowAny,),
 )
 
+router = DefaultRouter()
+router.register("api/articles/mytags", ArticleTagViewSet)
+
 urlpatterns = [
+    path("", include(router.urls)),
     path('admin/', admin.site.urls),
     path('api/', include('authors.apps.authentication.urls')),
     path('api/articles/', include('authors.apps.articles.urls')),
