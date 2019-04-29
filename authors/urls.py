@@ -37,6 +37,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include('authors.apps.authentication.urls')),
     path('api/articles/', include('authors.apps.articles.urls')),
+    path('api/articles/', include('authors.apps.article_rating.urls')),
     path(
         "docs/",
         schema_view.with_ui("swagger", cache_timeout=0),
