@@ -1,9 +1,33 @@
 from django.urls import path
-from .views import Articles, OneArticle
+from authors.apps.articles.views import (
+    Articles, 
+    OneArticle,
+    FavoriteArticleCreate,
+    UnFavoriteArticleDestroy
+)
 
 urlpatterns = [
     # /articles/
-    path("", Articles.as_view(), name="articles"),
+    path(
+        "", 
+        Articles.as_view(), 
+        name="articles"
+    ),
     # /articles/123/
-    path("<int:article_id>", OneArticle.as_view(), name="article"),
+    path(
+        "<int:article_id>", 
+        OneArticle.as_view(), 
+        name="article"
+    ),
+    path(
+        '<str:slug>/favorite/',
+        FavoriteArticleCreate.as_view(),
+        name='favorite'
+    ),
+    path(
+        '<str:slug>/unfavorite/',
+        UnFavoriteArticleDestroy.as_view(),
+        name='unfavorite'
+    )
+
 ]

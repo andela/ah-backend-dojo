@@ -1,13 +1,24 @@
-from django.shortcuts import get_object_or_404
+from django.shortcuts import (
+                              get_object_or_404, 
+                              get_list_or_404)
 from django.utils import timezone
 from django.utils.text import slugify
-from rest_framework import status
+from rest_framework import (generics, 
+                            response, 
+                            status)
 from django.utils import timezone
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import (IsAuthenticated,
+                                        IsAuthenticatedOrReadOnly,
+                                        AllowAny
+                                        )
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from .models import Article
-from .serializers import ArticleSerializer
+from .models import Article, FavoriteArticle
+from .serializers import (ArticleSerializer,
+                           FavoriteArticleSerializer)
+from authors.apps.profiles.serializers import ProfileSerializer
+from authors.apps.profiles.models import Profile
+from authors.apps.authentication.models import User
 
 class Articles(APIView):
     #Route protection
@@ -80,3 +91,71 @@ class OneArticle(APIView):
         article = get_object_or_404(Article, pk=article_id, delete_status=False)
         article.delete()
         return Response({"messege": "article deleted successfully"}, status=status.HTTP_200_OK)
+
+class FavoriteArticleCreate(generics.ListCreateAPIView):
+    """If the user feels satisfied with the article, he can favourite it """
+    permission_classes = (IsAuthenticatedOrReadOnly,)
+    queryset = FavoriteArticle.objects.all()
+    serializer_class = FavoriteArticleSerializer
+    article_serializer_class = ArticleSerializer
+
+    def check_article_exists(self, **kwargs):
+        """
+        Check whether article exists
+        """
+        article = get_object_or_404(
+            Article, 
+            slug=kwargs.get('slug')
+        )
+        return article
+
+    def post(self, request, **kwargs):
+        """
+        Favorite an article
+        """
+        article = self.check_article_exists(**kwargs)
+        favorite = FavoriteArticle.objects.filter(
+            favorited_by=request.user, 
+            article=article
+        )
+        if not favorite:
+            serializer = self.serializer_class(data={'favorited':True})
+            serializer.is_valid(raise_exception=True)
+            serializer.save(
+                article=article,
+                favorited_by=request.user
+            )
+            return Response(
+                {"message": "You have successfully favorited this article "},
+                status=status.HTTP_200_OK
+            )
+        return Response(
+            {"message": "You already favorited this article"},
+            status=status.HTTP_200_OK
+        )
+
+
+class UnFavoriteArticleDestroy(generics.DestroyAPIView):
+    """If he feels disatisfied with the article he can Unfavourite it. """
+    permission_classes = (IsAuthenticatedOrReadOnly,)
+    queryset = FavoriteArticle.objects.all()
+    serializer_class = FavoriteArticleSerializer
+    def delete(self, request, **kwargs):
+        """
+        Unfavorite an article
+        """
+        queryset = FavoriteArticle.objects.filter(favorited_by=request.user)
+        favorited = queryset.filter(article_id=(Article.objects.filter(slug=kwargs.get('slug')).first()).id).first()
+        serializer = FavoriteArticleSerializer(favorited)
+
+        if not favorited:
+            return Response(
+                {
+                    'message': "You have already unfavourited this article"
+                }, status.HTTP_400_BAD_REQUEST)
+
+        self.perform_destroy(favorited)
+        return Response(
+            {
+                "message": "You have successfully unfavorited this article."
+            }, status.HTTP_200_OK)
