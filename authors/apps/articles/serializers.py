@@ -5,7 +5,6 @@ class ArticleSerializer(serializers.ModelSerializer):
     """This serializer requests and creates a new article"""
     class Meta:
         fields = [
-            'id',
             'slug',
             'title',
             'body',
@@ -15,9 +14,6 @@ class ArticleSerializer(serializers.ModelSerializer):
             'createdAt',
             'updatedAt',
             'delete_status'
-        ]
-        read_only_fields = [
-            ''
         ]
         model = Article
         

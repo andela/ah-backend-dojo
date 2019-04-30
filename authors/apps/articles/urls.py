@@ -4,6 +4,6 @@ from .views import Articles, OneArticle
 urlpatterns = [
     # /articles/
     path("", Articles.as_view(), name="articles"),
-    # /articles/123/
-    path("<int:article_id>", OneArticle.as_view(), name="article"),
+    # /articles/slug/
+    path("<str:slug>/", OneArticle.as_view(), name="article"),
 ]
