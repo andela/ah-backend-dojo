@@ -165,3 +165,8 @@ class UserSerializer(serializers.ModelSerializer):
         instance.save()
 
         return instance
+
+class PasswordSerializer(serializers.Serializer):
+    password = serializers.CharField(
+        max_length=128, min_length=8, write_only=True
+    )

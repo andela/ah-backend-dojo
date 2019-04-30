@@ -44,6 +44,11 @@ EMAIL_PORT = 587
 PASSWORD_RESET_TIMEOUT_DAYS = 1
 # Application definition
 
+# Set time in hours for password recovery token to expire
+DJANGO_REST_MULTITOKENAUTH_RESET_TOKEN_EXPIRY_TIME = 24
+
+WEB_HOST = os.environ.get('WEB_HOST')
+
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -55,6 +60,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'django_extensions',
     'rest_framework',
+    'django_rest_passwordreset',
 
     'authors.apps.authentication',
     'authors.apps.core',
