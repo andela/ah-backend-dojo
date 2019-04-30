@@ -37,11 +37,15 @@ EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
 EMAIL_PORT = 587
-
-
 # EMAIL_BACKEND = 'django.core.mail.backends.locmem.EmailBackend'
 
+# Set time in days for account activation token to expire
 PASSWORD_RESET_TIMEOUT_DAYS = 1
+# Set time in hours for password recovery token to expire
+DJANGO_REST_MULTITOKENAUTH_RESET_TOKEN_EXPIRY_TIME = 24
+
+WEB_HOST = os.environ.get('WEB_HOST')
+
 # Application definition
 
 INSTALLED_APPS = [
@@ -55,6 +59,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'django_extensions',
     'rest_framework',
+    'django_rest_passwordreset',
 
     'authors.apps.authentication',
     'authors.apps.core',
@@ -106,7 +111,7 @@ DATABASES = {
         'USER':os.environ.get('DB_USER'),
         'PASSWORD':os.environ.get('DB_PASS'),
         'HOST':os.environ.get('DB_HOST'),
-        'PORT':os.environ.get('DB_PORT')
+        'PORT':os.environ.get('DB_PORT'),
     }
 }
 
