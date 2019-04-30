@@ -44,7 +44,8 @@ class FavoriteArticle(TestCase):
             "article": {
                 "title": "Article 2 title",
                 "body": "Article body",
-                "description": "Article description"
+                "description": "Article description",
+                "tagList":["python"]
                 }
         }
 

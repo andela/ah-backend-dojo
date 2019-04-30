@@ -11,6 +11,7 @@ class TestArticleViews(TestCase):
         self.user = User.objects.create(
             username="zack", email="zack@andela.com", is_superuser=False, is_active=True
         )
+
         self.article_1 = Article.objects.create(
                 title="Article 1 title",
                 body="Article body",
@@ -24,30 +25,35 @@ class TestArticleViews(TestCase):
             "article": {
                 "title": "Article 2 title",
                 "body": "Article body",
-                "description": "Article description"
+                "description": "Article description",
+                "tagList":["python"]
                 }
         }
         self.article_3 = {
             "article": {
                 "title": "Article 3 title",
                 "body": "Article body",
-                "description": "Article description"
+                "description": "Article description",
+                "tagList":["python", "java"]
                 }
         }
         self.article_edit = {
             "article": {
                 "title": "Article title - edit",
                 "body": "Article body - edit",
-                "description": "Article description - edit"
+                "description": "Article description - edit",
+                "tagList":["python", "java"]
                 }
             }
         self.article_missing_fields = {
             "article": {
                 "title": "Article title - edit",
                 "body": "",
-                "description": "Article description - edit"
+                "description": "Article description - edit",
+                "tagList":["python", "java"]
                 }
             }
+        self.url = f"/api/articles/{self.article_1.slug}/"
     def test_create_article_object(self):
         self.assertTrue(self.article_1)
         self.assertTrue(self.article_1.slug)
@@ -101,9 +107,13 @@ class TestArticleViews(TestCase):
 
     def test_get_an_article(self):
         self.client.force_authenticate(user=self.user)
-
-        url = f"/api/articles/{self.slug }/"
-        response = self.client.get(url)
+        url_1 = "/api/articles/"
+        response_1 = self.client.post(
+            url_1,
+            content_type="application/json",
+            data=json.dumps(self.article_2)
+        )
+        response = self.client.get(self.url)
 
     def test_get_an_article_invalid_slug(self):
         self.client.force_authenticate(user=self.user)
@@ -113,10 +123,14 @@ class TestArticleViews(TestCase):
 
     def test_update_an_article(self):
         self.client.force_authenticate(user=self.user)
-
-        url = f"/api/articles/{self.slug }/"
+        url_1 = "/api/articles/"
+        response_1 = self.client.post(
+            url_1,
+            content_type="application/json",
+            data=json.dumps(self.article_2)
+        )
         response = self.client.put(
-            url,
+            self.url,
             content_type="application/json",
             data=json.dumps(self.article_edit)
         )
@@ -134,10 +148,14 @@ class TestArticleViews(TestCase):
 
     def test_update_an_article_missing_fields(self):
         self.client.force_authenticate(user=self.user)
-
-        url = f"/api/articles/{self.slug }/"
+        url_1 = "/api/articles/"
+        response_1 = self.client.post(
+            url_1,
+            content_type="application/json",
+            data=json.dumps(self.article_2)
+        )
         response = self.client.put(
-            url,
+            self.url,
             content_type="application/json",
             data=json.dumps(self.article_missing_fields)
         )
@@ -145,9 +163,13 @@ class TestArticleViews(TestCase):
 
     def test_delete_an_article(self):
         self.client.force_authenticate(user=self.user)
-
-        url = f"/api/articles/{self.slug}/"
-        response = self.client.delete(url)
+        url_1 = "/api/articles/"
+        response_1 = self.client.post(
+            url_1,
+            content_type="application/json",
+            data=json.dumps(self.article_2)
+        )
+        response = self.client.delete(self.url)
         self.assertEqual(response.status_code, 200)
 
     def test_delete_an_article_invalid_id(self):

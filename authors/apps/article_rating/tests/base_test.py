@@ -1,6 +1,8 @@
 from authors.apps.authentication.models import User
 from rest_framework.test import APIClient, APITestCase
 from rest_framework import status
+from authors.apps.articles.models import Article
+from authors.apps.articles.extra_methods import create_slug
 
 class BaseTest(APITestCase):
     create_article_url = '/api/articles/'
@@ -16,7 +18,8 @@ class BaseTest(APITestCase):
             "article": {
                 "title": "Article 2 title",
                 "body": "Article body",
-                "description": "Article description"
+                "description": "Article description",
+                "tagList":["python"]
                 }
         }
         self.client.force_authenticate(user=self.user)
