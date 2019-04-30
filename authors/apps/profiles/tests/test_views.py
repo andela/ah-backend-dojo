@@ -24,12 +24,10 @@ class TestProfileViews(TestCase):
             self.username2, self.email2, self.password2)
 
         # verify a user's account and save
-        self.user.is_verified = True
         self.user.save()
         self.token = self.user.token
 
         # verify and save the second user
-        self.user2.is_verified = True
         self.user2.save()
         self.token2 = self.user2.token
 

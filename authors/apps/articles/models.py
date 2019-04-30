@@ -14,3 +14,14 @@ class Article(models.Model):
 
     def __str__(self):
         return self.title
+
+class FavoriteArticle(models.Model):
+    """
+    Model for favoriting Articles
+    """
+    favorited = models.BooleanField(default=False)
+    favorited_by = models.ForeignKey(User, on_delete=models.CASCADE)
+    article = models.ForeignKey(Article, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return str(self.pk)

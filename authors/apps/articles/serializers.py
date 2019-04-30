@@ -1,5 +1,7 @@
 from rest_framework import serializers
 from .models import Article
+from authors.apps.authentication.serializers import UserSerializer
+from . import models
 
 class ArticleSerializer(serializers.ModelSerializer):
     """This serializer requests and creates a new article"""
@@ -20,4 +22,15 @@ class ArticleSerializer(serializers.ModelSerializer):
             ''
         ]
         model = Article
-        
+
+class FavoriteArticleSerializer(serializers.ModelSerializer):
+    """
+    Favorite Article serializer
+    """
+    article = ArticleSerializer(required=False)
+    favorited_by = UserSerializer(required=False)
+
+    class Meta:
+        fields = '__all__'
+        model = models.FavoriteArticle
+        read_only_fields = ['favorited_by', 'article']
