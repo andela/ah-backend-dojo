@@ -30,6 +30,7 @@ from rest_framework import authentication, permissions
 from rest_framework.decorators import api_view, permission_classes
 
 from drf_yasg.utils import swagger_auto_schema
+from drf_yasg.utils import swagger_auto_schema
 
 from .renderers import UserJSONRenderer
 from .models import User

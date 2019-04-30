@@ -16,8 +16,9 @@ class TestArticleViews(TestCase):
                 body="Article body",
                 description="Article description",
                 author=self.user,
+                slug=create_slug(Article, "Article 1 title")
                 )
-        self.article_1.slug = create_slug(Article, self.article_1.title)
+        self.slug = self.article_1.slug
 
         self.article_2 = {
             "article": {
@@ -100,14 +101,8 @@ class TestArticleViews(TestCase):
 
     def test_get_an_article(self):
         self.client.force_authenticate(user=self.user)
-        url_1 = "/api/articles/"
-        response_1 = self.client.post(
-            url_1,
-            content_type="application/json",
-            data=json.dumps(self.article_2)
-        )
-        slug = (response_1.data['article'])['slug']
-        url = f"/api/articles/{slug}/"
+
+        url = f"/api/articles/{self.slug }/"
         response = self.client.get(url)
 
     def test_get_an_article_invalid_slug(self):
@@ -118,14 +113,8 @@ class TestArticleViews(TestCase):
 
     def test_update_an_article(self):
         self.client.force_authenticate(user=self.user)
-        url_1 = "/api/articles/"
-        response_1 = self.client.post(
-            url_1,
-            content_type="application/json",
-            data=json.dumps(self.article_2)
-        )
-        slug = (response_1.data['article'])['slug']
-        url = f"/api/articles/{slug}/"
+
+        url = f"/api/articles/{self.slug }/"
         response = self.client.put(
             url,
             content_type="application/json",
@@ -145,14 +134,8 @@ class TestArticleViews(TestCase):
 
     def test_update_an_article_missing_fields(self):
         self.client.force_authenticate(user=self.user)
-        url_1 = "/api/articles/"
-        response_1 = self.client.post(
-            url_1,
-            content_type="application/json",
-            data=json.dumps(self.article_2)
-        )
-        slug = (response_1.data['article'])['slug']
-        url = f"/api/articles/{slug}/"
+
+        url = f"/api/articles/{self.slug }/"
         response = self.client.put(
             url,
             content_type="application/json",
@@ -162,14 +145,8 @@ class TestArticleViews(TestCase):
 
     def test_delete_an_article(self):
         self.client.force_authenticate(user=self.user)
-        url_1 = "/api/articles/"
-        response_1 = self.client.post(
-            url_1,
-            content_type="application/json",
-            data=json.dumps(self.article_2)
-        )
-        slug = (response_1.data['article'])['slug']
-        url = f"/api/articles/{slug}/"
+
+        url = f"/api/articles/{self.slug}/"
         response = self.client.delete(url)
         self.assertEqual(response.status_code, 200)
 
