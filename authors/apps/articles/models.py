@@ -2,7 +2,7 @@ from django.db import models
 from authors.apps.authentication.models import User
 
 class Article(models.Model):
-    slug = models.CharField(max_length=120, unique=True)
+    slug = models.CharField(max_length=110, unique=True)
     title = models.CharField(max_length=100)
     body = models.TextField()
     description = models.TextField()

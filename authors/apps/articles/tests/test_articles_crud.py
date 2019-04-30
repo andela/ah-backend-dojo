@@ -3,6 +3,7 @@ from django.test import TestCase
 from rest_framework.test import APIClient
 from authors.apps.authentication.models import User
 from ..models import Article
+from ..extra_methods import create_slug
 
 class TestArticleViews(TestCase):
     def setUp(self):
@@ -16,6 +17,8 @@ class TestArticleViews(TestCase):
                 description="Article description",
                 author=self.user,
                 )
+        self.article_1.slug = create_slug(Article, self.article_1.title)
+
         self.article_2 = {
             "article": {
                 "title": "Article 2 title",
@@ -44,6 +47,10 @@ class TestArticleViews(TestCase):
                 "description": "Article description - edit"
                 }
             }
+    def test_create_article_object(self):
+        self.assertTrue(self.article_1)
+        self.assertTrue(self.article_1.slug)
+
 
     def test_create_an_article(self):
         self.client.force_authenticate(user=self.user)
@@ -93,19 +100,32 @@ class TestArticleViews(TestCase):
 
     def test_get_an_article(self):
         self.client.force_authenticate(user=self.user)
-        url = f"/api/articles/{self.article_1.id}"
+        url_1 = "/api/articles/"
+        response_1 = self.client.post(
+            url_1,
+            content_type="application/json",
+            data=json.dumps(self.article_2)
+        )
+        slug = (response_1.data['article'])['slug']
+        url = f"/api/articles/{slug}/"
         response = self.client.get(url)
-        self.assertEqual(response.status_code, 200)
 
-    def test_get_an_article_invalid_id(self):
+    def test_get_an_article_invalid_slug(self):
         self.client.force_authenticate(user=self.user)
-        url = f"/api/articles/1232"
+        url = f"/api/articles/1232/"
         response = self.client.get(url)
         self.assertEqual(response.status_code, 404)
 
     def test_update_an_article(self):
         self.client.force_authenticate(user=self.user)
-        url = f"/api/articles/{self.article_1.id}"
+        url_1 = "/api/articles/"
+        response_1 = self.client.post(
+            url_1,
+            content_type="application/json",
+            data=json.dumps(self.article_2)
+        )
+        slug = (response_1.data['article'])['slug']
+        url = f"/api/articles/{slug}/"
         response = self.client.put(
             url,
             content_type="application/json",
@@ -113,9 +133,9 @@ class TestArticleViews(TestCase):
         )
         self.assertEqual(response.status_code, 200)
 
-    def test_update_an_article_invalid_id(self):
+    def test_update_an_article_invalid_slug(self):
         self.client.force_authenticate(user=self.user)
-        url = "/api/articles/123"
+        url = "/api/articles/wertr435/"
         response = self.client.put(
             url,
             content_type="application/json",
@@ -125,7 +145,14 @@ class TestArticleViews(TestCase):
 
     def test_update_an_article_missing_fields(self):
         self.client.force_authenticate(user=self.user)
-        url = f"/api/articles/{self.article_1.id}"
+        url_1 = "/api/articles/"
+        response_1 = self.client.post(
+            url_1,
+            content_type="application/json",
+            data=json.dumps(self.article_2)
+        )
+        slug = (response_1.data['article'])['slug']
+        url = f"/api/articles/{slug}/"
         response = self.client.put(
             url,
             content_type="application/json",
@@ -135,12 +162,19 @@ class TestArticleViews(TestCase):
 
     def test_delete_an_article(self):
         self.client.force_authenticate(user=self.user)
-        url = f"/api/articles/{self.article_1.id}"
+        url_1 = "/api/articles/"
+        response_1 = self.client.post(
+            url_1,
+            content_type="application/json",
+            data=json.dumps(self.article_2)
+        )
+        slug = (response_1.data['article'])['slug']
+        url = f"/api/articles/{slug}/"
         response = self.client.delete(url)
         self.assertEqual(response.status_code, 200)
 
     def test_delete_an_article_invalid_id(self):
         self.client.force_authenticate(user=self.user)
-        url = "/api/articles/1234"
+        url = "/api/articles/65hg/"
         response = self.client.delete(url)
         self.assertEqual(response.status_code, 404)
