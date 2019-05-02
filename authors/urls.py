@@ -22,17 +22,16 @@ from authors.apps.article_tag.views import ArticleTagViewSet
 from rest_framework.routers import DefaultRouter
 
 schema_view = get_schema_view(
-   openapi.Info(
-      title="Authors Haven",
-      default_version='v1',
-      description=
-      ("A community of like minded authors "
-      "to foster inspiration and innovation "
-      "by leveraging the modern web."),
-      license=openapi.License(name="Andela License"),
-   ),
-   public=True,
-   permission_classes=(permissions.AllowAny,),
+    openapi.Info(
+        title="Authors Haven",
+        default_version='v1',
+        description=("A community of like minded authors "
+                     "to foster inspiration and innovation "
+                     "by leveraging the modern web."),
+        license=openapi.License(name="Andela License"),
+    ),
+    public=True,
+    permission_classes=(permissions.AllowAny,),
 )
 
 router = DefaultRouter()
@@ -44,6 +43,7 @@ urlpatterns = [
     path('api/', include('authors.apps.authentication.urls')),
     path('api/articles/', include('authors.apps.articles.urls')),
     path('api/articles/', include('authors.apps.article_rating.urls')),
+    path('api/articles/<slug>/', include('authors.apps.comments.urls')),
     path(
         "docs/",
         schema_view.with_ui("swagger", cache_timeout=0),
@@ -51,4 +51,3 @@ urlpatterns = [
     ),
     path('api/', include('authors.apps.profiles.urls')),
 ]
-

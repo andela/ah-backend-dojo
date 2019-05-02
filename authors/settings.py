@@ -66,6 +66,8 @@ INSTALLED_APPS = [
     'authors.apps.core',
     'authors.apps.profiles',
     'authors.apps.articles',
+    'authors.apps.comments',
+
     'drf_yasg',
     'authors.apps.article_rating',
     'authors.apps.article_tag',

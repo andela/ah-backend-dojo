@@ -1,6 +1,12 @@
-from django.shortcuts import get_object_or_404, get_list_or_404
+from django.shortcuts import (
+    get_object_or_404,
+    get_list_or_404
+)
+from django.utils import timezone
 from django.utils.text import slugify
-
+from rest_framework import (generics,
+                            response,
+                            status)
 from django.utils import timezone
 
 
@@ -115,7 +121,9 @@ class OneArticle(APIView):
             serializer.save()
             article = serializer.data
             return Response({"article": article}, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response(
+                serializer.errors, status=status.HTTP_400_BAD_REQUEST
+            )
 
     def delete(cls, request, slug):
         article = get_object_or_404(Article, slug=slug, delete_status=False)
@@ -138,7 +146,10 @@ class FavoriteArticleCreate(generics.ListCreateAPIView):
         """
         Check whether article exists
         """
-        article = get_object_or_404(Article, slug=kwargs.get("slug"))
+        article = get_object_or_404(
+            Article,
+            slug=kwargs.get('slug')
+        )
         return article
 
     def post(self, request, **kwargs):
@@ -147,7 +158,8 @@ class FavoriteArticleCreate(generics.ListCreateAPIView):
         """
         article = self.check_article_exists(**kwargs)
         favorite = FavoriteArticle.objects.filter(
-            favorited_by=request.user, article=article
+            favorited_by=request.user,
+            article=article
         )
         if not favorite:
             serializer = self.serializer_class(data={"favorited": True})
@@ -190,6 +202,8 @@ class UnFavoriteArticleDestroy(generics.DestroyAPIView):
 
         self.perform_destroy(favorited)
         return Response(
-            {"message": "You have successfully unfavorited this article."},
-            status.HTTP_200_OK,
+            {
+                "message": "You have successfully unfavorited this article."
+            },
+            status.HTTP_200_OK
         )
