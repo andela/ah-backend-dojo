@@ -1,3 +1,5 @@
+import readtime
+
 from django.shortcuts import (
     get_object_or_404,
     get_list_or_404
@@ -75,6 +77,7 @@ class ListCreateArticlesView(APIView, CustomPaginationMixin):
 
         data["slug"] = create_slug(Article, data["title"])
         data["author"] = current_user.username
+        data["time_to_read"] = get_time_to_read(data.get('body'))
 
         """create tag if it doesn't exist"""
         tag_list = ArticleTagViewSet.create_tag_if_not_exist(ArticleTagViewSet, data.get('tagList'))
@@ -123,6 +126,7 @@ class UpdateDeleteArticleView(APIView):
             article_data["title"] = json_data.get("title")
             article_data["body"] = json_data.get("body")
             article_data["description"] = json_data.get("description")
+            article_data["time_to_read"] = get_time_to_read(json_data.get('body'))
 
             """create tag if it doesn't exist"""
             tag_list = ArticleTagViewSet.create_tag_if_not_exist(ArticleTagViewSet, json_data.get('tagList'))
@@ -230,4 +234,13 @@ class UnFavoriteArticleDestroy(generics.DestroyAPIView):
         return Response(
             {
                 "message": "You have successfully unfavorited this article."
-            }, status.HTTP_200_OK)
+            },
+            status.HTTP_200_OK
+        )
+
+
+def get_time_to_read(body):
+    '''
+    Method to calculate the time to read
+    '''
+    return readtime.of_text(body).minutes
