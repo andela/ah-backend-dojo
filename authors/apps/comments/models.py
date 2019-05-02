@@ -12,3 +12,13 @@ class Comment(models.Model):
 
     def __str__(self):
         return self.body
+
+class CommentLikeDislike(models.Model):
+    '''Make sure a user can like or dislike a comment '''
+
+    like = models.BooleanField(default=True)
+    comment = models.ForeignKey(Comment, on_delete=models.CASCADE)
+    user = models.ForeignKey(Profile, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.like
