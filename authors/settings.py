@@ -68,6 +68,7 @@ INSTALLED_APPS = [
     'authors.apps.articles',
     'drf_yasg',
     'authors.apps.article_rating',
+    'authors.apps.article_tag',
 ]
 
 MIDDLEWARE = [

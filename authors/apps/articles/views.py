@@ -14,6 +14,7 @@ from rest_framework.permissions import (IsAuthenticated,
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from .extra_methods import create_slug
+from authors.apps.article_tag.views import ArticleTagViewSet
 from .models import Article, FavoriteArticle
 from .serializers import (ArticleSerializer,
                            FavoriteArticleSerializer)
@@ -45,6 +46,10 @@ class Articles(APIView):
         current_user = request.user
         data["slug"] = create_slug(Article, data['title'])
         data["author"] = current_user.username
+
+        """create tag if it doesn't exist"""
+        tag_list = ArticleTagViewSet.create_tag_if_not_exist(ArticleTagViewSet, data.get('tagList'))
+        data["tagList"] = tag_list
         serializer = ArticleSerializer(data=data)
         if serializer.is_valid():
             serializer.save()
@@ -81,6 +86,11 @@ class OneArticle(APIView):
         data["title"] = json_data.get("title")
         data["body"] = json_data.get("body")
         data["description"] = json_data.get("description")
+
+        """create tag if it doesn't exist"""
+        tag_list = ArticleTagViewSet.create_tag_if_not_exist(ArticleTagViewSet, json_data.get('tagList'))
+        data["tagList"] = tag_list
+
         serializer = ArticleSerializer(article, data)
         if serializer.is_valid():
             serializer.save()
