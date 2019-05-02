@@ -43,6 +43,7 @@ urlpatterns = [
     path('api/', include('authors.apps.authentication.urls')),
     path('api/articles/', include('authors.apps.articles.urls')),
     path('api/articles/', include('authors.apps.article_rating.urls')),
+    path('api/articles/<str:slug>/', include('authors.apps.article_likes.urls')),
     path('api/articles/<slug>/', include('authors.apps.comments.urls')),
     path(
         "docs/",

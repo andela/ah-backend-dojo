@@ -1,7 +1,7 @@
 from django.urls import path
 from authors.apps.articles.views import (
-    Articles, 
-    OneArticle,
+    ListCreateArticlesView, 
+    UpdateDeleteArticleView,
     FavoriteArticleCreate,
     UnFavoriteArticleDestroy
 )
@@ -10,13 +10,13 @@ urlpatterns = [
     # /articles/
     path(
         "", 
-        Articles.as_view(), 
+        ListCreateArticlesView.as_view(), 
         name="articles"
     ),
     # /articles/123/
     path(
-        "<str:slug>/", 
-        OneArticle.as_view(), 
+        "<int:article_id>/", 
+        UpdateDeleteArticleView.as_view(), 
         name="article"
     ),
     path(
