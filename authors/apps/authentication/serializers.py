@@ -31,20 +31,7 @@ class RegistrationSerializer(serializers.ModelSerializer):
         return User.objects.create_user(**validated_data)
 
     def validate_password(self, password):
-        error = None
-        if not re.search("[0-9]", password):
-            # Check if password contains a digit
-            error = "Password should be alpha Numeric"
-        elif not re.search("[A-Z]", password):
-            # Check if password contains an upper case letter
-            error = "Password should contain at least one Upper Case letter"
-        elif not re.search("[a-z]", password):
-            # Check if password contains a lower case letter
-            error = "Password should contain at least one lower Case letter"
-        if error:
-            raise serializers.ValidationError(str(error))
-        else:
-            return password
+        return get_validated_password_or_error(password)
 
     def validate_username(self, username):
         if len(str(username).split(" ")) > 1:
@@ -170,3 +157,23 @@ class PasswordSerializer(serializers.Serializer):
     password = serializers.CharField(
         max_length=128, min_length=8, write_only=True
     )
+
+    def validate_password(self, password):
+        return get_validated_password_or_error(password)
+        
+
+def get_validated_password_or_error(password):
+        error = None
+        if not re.search("[0-9]", password):
+            # Check if password contains a digit
+            error = "Password should be alpha Numeric"
+        elif not re.search("[A-Z]", password):
+            # Check if password contains an upper case letter
+            error = "Password should contain at least one Upper Case letter"
+        elif not re.search("[a-z]", password):
+            # Check if password contains a lower case letter
+            error = "Password should contain at least one lower Case letter"
+        if error:
+            raise serializers.ValidationError(str(error))
+        else:
+            return password
