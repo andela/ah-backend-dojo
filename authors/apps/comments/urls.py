@@ -1,5 +1,6 @@
 from django.urls import path
-from .views import ListCreateCommentView, UpdateDestroyCommentView
+from .views import (ListCreateCommentView, UpdateDestroyCommentView,
+                    LikeComment,DislikeComment)
 
 urlpatterns = [
     path(
@@ -12,4 +13,8 @@ urlpatterns = [
         UpdateDestroyCommentView.as_view(),
         name="retrieve_update_destroy",
     ),
+    path('comments/<int:pk>/like',
+         LikeComment.as_view()),
+    path('comments/<int:pk>/dislike',
+         DislikeComment.as_view())
 ]
