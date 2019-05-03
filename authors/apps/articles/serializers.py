@@ -22,7 +22,8 @@ class ArticleSerializer(serializers.ModelSerializer):
             'createdAt',
             'updatedAt',
             'delete_status',
-            'tagList'
+            'tagList',
+            'time_to_read',
         ]
         model = Article
 

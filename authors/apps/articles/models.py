@@ -13,6 +13,7 @@ class Article(models.Model):
     updatedAt = models.DateTimeField(auto_now_add=True)
     delete_status = models.BooleanField(default=False)
     tagList = models.ManyToManyField(ArticleTag, related_name='articles')
+    time_to_read = models.IntegerField(default=0)
 
     def __str__(self):
         return self.title
