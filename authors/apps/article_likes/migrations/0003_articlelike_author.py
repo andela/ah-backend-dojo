@@ -11,13 +11,13 @@ class Migration(migrations.Migration):
 
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ('article_rating', '0002_articlerating_article'),
+        ('article_likes', '0002_articlelike_article'),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='articlerating',
-            name='user',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, related_name='articlerating', to=settings.AUTH_USER_MODEL),
+            model_name='articlelike',
+            name='author',
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL, to_field='username'),
         ),
     ]

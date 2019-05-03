@@ -9,14 +9,14 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('article_rating', '0001_initial'),
         ('articles', '0001_initial'),
+        ('article_likes', '0001_initial'),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='articlerating',
+            model_name='articlelike',
             name='article',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='articles.Article', to_field='slug'),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='articles.Article'),
         ),
     ]

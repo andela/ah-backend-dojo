@@ -12,10 +12,11 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name='ArticleTag',
+            name='ArticleLike',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('tag_text', models.CharField(max_length=50, unique=True)),
+                ('like_value', models.BooleanField()),
+                ('createdAt', models.DateTimeField(auto_now_add=True)),
             ],
         ),
     ]
