@@ -16,7 +16,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import status
 from rest_framework.settings import api_settings
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 from rest_framework import generics
 from rest_framework.permissions import (
@@ -46,7 +46,7 @@ class ListCreateArticlesView(APIView, CustomPaginationMixin):
     """
 
     # Route protection
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticatedOrReadOnly,)
     pagination_class = api_settings.DEFAULT_PAGINATION_CLASS
     queryset = Article.objects.all().order_by("createdAt")
     serializer_class = ArticleSerializer
@@ -110,7 +110,7 @@ class UpdateDeleteArticleView(APIView):
         an_article = dict(serializer.data)
         an_article['likeCount'] = [like_grand_count(an_article)]
         return Response({"article": an_article}, status=status.HTTP_200_OK)
-    
+
     def put(cls, request, article_id):
         article = get_object_or_404(Article, id=article_id, delete_status=False)
         serializer = ArticleSerializer(article, many=False)
@@ -131,7 +131,7 @@ class UpdateDeleteArticleView(APIView):
             """create tag if it doesn't exist"""
             tag_list = ArticleTagViewSet.create_tag_if_not_exist(ArticleTagViewSet, json_data.get('tagList'))
             article_data["tagList"] = tag_list
-           
+
             serializer = ArticleSerializer(article, article_data)
 
             if serializer.is_valid():
@@ -151,7 +151,7 @@ class UpdateDeleteArticleView(APIView):
     def delete(cls, request, article_id):
         article = get_object_or_404(Article, id=article_id, delete_status=False)
         serializer = ArticleSerializer(article, many=False)
-        current_user = request.user        
+        current_user = request.user
         article_data = dict(serializer.data)
         author = article_data["author"]
 
@@ -163,7 +163,7 @@ class UpdateDeleteArticleView(APIView):
                 {"error": "you cannot delete an article created by another user"},
                 status=status.HTTP_401_UNAUTHORIZED
         )
-    
+
 class FavoriteArticleCreate(generics.ListCreateAPIView):
     """If the user feels satisfied with the article, he can favourite it """
 

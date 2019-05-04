@@ -395,5 +395,18 @@ No additional parameters required
 `GET /api/tags`
 
 
+### Bookmark /Un-bookmark an article
+`POST /api/articles/:slug/bookmark/`
+
+Authentication required, returns the created Bookmark
+
+### Get Bookmarks
+
+`GET /api/bookmarks/`
+
+Authentication required, returns multiple bookmarks
+
+
+
 
 
