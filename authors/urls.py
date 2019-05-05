@@ -45,6 +45,7 @@ urlpatterns = [
     path('api/articles/', include('authors.apps.article_rating.urls')),
     path('api/articles/<str:slug>/', include('authors.apps.article_likes.urls')),
     path('api/articles/<slug>/', include('authors.apps.comments.urls')),
+    path('api/authors/', include('authors.apps.author_follows.urls')),
     path(
         "docs/",
         schema_view.with_ui("swagger", cache_timeout=0),
