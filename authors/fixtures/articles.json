@@ -1,0 +1,100 @@
+[
+  {
+    "model": "articles.article",
+    "pk": 1,
+    "fields": {
+      "slug": "new-posdt",
+      "title": "New posdt",
+      "body": "How to write unit tests in django using pytest",
+      "description": "This article is about how to write unittests using pytest",
+      "author": "zack",
+      "publish_status": false,
+      "createdAt": "2019-05-06T20:59:35.258Z",
+      "updatedAt": "2019-05-06T20:59:35.258Z",
+      "delete_status": false,
+      "time_to_read": 1,
+      "tagList": [
+        1
+      ]
+    }
+  },
+  {
+    "model": "articles.article",
+    "pk": 2,
+    "fields": {
+      "slug": "new-posdt-nshh",
+      "title": "Tests for Dummys",
+      "body": "How to write unit tests in django using pytest",
+      "description": "This article is about how to write unittests using pytest",
+      "author": "zack",
+      "publish_status": false,
+      "createdAt": "2019-05-06T21:06:14.364Z",
+      "updatedAt": "2019-05-06T21:06:14.364Z",
+      "delete_status": false,
+      "time_to_read": 1,
+      "tagList": [
+        1
+      ]
+    }
+  },
+  {
+    "model": "articles.article",
+    "pk": 3,
+    "fields": {
+      "slug": "new-posdt-u6zb",
+      "title": "Tests for Dummys",
+      "body": "How to write unit tests in django using pytest",
+      "description": "This article is about how to write unittests using pytest",
+      "author": "zack",
+      "publish_status": false,
+      "createdAt": "2019-05-06T22:02:26.833Z",
+      "updatedAt": "2019-05-06T22:02:26.833Z",
+      "delete_status": false,
+      "time_to_read": 1,
+      "tagList": [
+        1,
+        2
+      ]
+    }
+  },
+  {
+    "model": "articles.article",
+    "pk": 4,
+    "fields": {
+      "slug": "mine",
+      "title": "mine",
+      "body": "How to write unit tests in django using pytest",
+      "description": "This article is about how to write unittests using pytest",
+      "author": "author",
+      "publish_status": false,
+      "createdAt": "2019-05-06T22:14:52.143Z",
+      "updatedAt": "2019-05-06T22:14:52.143Z",
+      "delete_status": false,
+      "time_to_read": 1,
+      "tagList": [
+        1,
+        2
+      ]
+    }
+  },
+  {
+    "model": "articles.article",
+    "pk": 5,
+    "fields": {
+      "slug": "xmine",
+      "title": "The Zen of python",
+      "body": "How to write unit tests in django using pytest",
+      "description": "This article is about how to write unittests using pytest",
+      "author": "zack",
+      "publish_status": false,
+      "createdAt": "2019-05-06T22:20:52.381Z",
+      "updatedAt": "2019-05-06T22:20:52.381Z",
+      "delete_status": false,
+      "time_to_read": 1,
+      "tagList": [
+        1,
+        2
+      ]
+    }
+  }
+]

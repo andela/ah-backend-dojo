@@ -1,13 +1,14 @@
 import readtime
-from django.db.utils import IntegrityError
+from django.db.models import Q
 from django.shortcuts import (
     get_object_or_404
 )
 from django.utils import timezone
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import generics
 from rest_framework import status
 from rest_framework.permissions import (
-    IsAuthenticatedOrReadOnly, AllowAny
+    IsAuthenticatedOrReadOnly
 )
 from rest_framework.response import Response
 from rest_framework.settings import api_settings
@@ -33,9 +34,36 @@ class ListCreateArticlesView(APIView, CustomPaginationMixin):
     pagination_class = api_settings.DEFAULT_PAGINATION_CLASS
     queryset = Article.objects.all().order_by("createdAt")
     serializer_class = ArticleSerializer
+    filter_backends = (DjangoFilterBackend,)
+    filterset_fields = ('author', 'tag', 'title', 'body')
+
+    def get_queryset(self):
+        queryset = self.queryset
+
+        author = self.request.query_params.get('author', None)
+        if author is not None:
+            queryset = self.queryset.filter(author__username__icontains=author)
+
+        tag = self.request.query_params.get('tag', None)
+        if tag:
+            queryset = queryset.filter(tagList__tag_text__icontains=tag)
+
+        title = self.request.query_params.get('title', None)
+        if title:
+            queryset = queryset.filter(title__icontains=title)
+
+        search = self.request.query_params.get('search', None)
+        if search:
+            queryset = queryset.filter(
+                Q(author__username__icontains=search) | Q(
+                    title__icontains=search) | Q(tagList__tag_text__icontains=search) | Q(
+                    body__icontains=search) | Q(description__icontains=search)
+            )
+
+        return queryset
 
     def get(self, request):
-        page = self.paginate_queryset(self.queryset)
+        page = self.paginate_queryset(self.get_queryset())
         if page is not None:
             serializer = self.serializer_class(page, many=True)
             articles_count = len(serializer.data)
@@ -89,7 +117,6 @@ class RetrieveUpdateDeleteArticleView(APIView):
     permission_classes = (IsAuthenticatedOrReadOnly,)
 
     def get(cls, request, article_id):
-
         article = get_object_or_404(
             Article, id=article_id, delete_status=False)
         serializer = ArticleSerializer(article, many=False)
@@ -100,7 +127,7 @@ class RetrieveUpdateDeleteArticleView(APIView):
         read_stats = ReadingStats.objects.get(
             article=article.id
         )
-        read_stats.views = int(read_stats.views)+1
+        read_stats.views = int(read_stats.views) + 1
         read_stats.save()
 
         return Response({"article": an_article}, status=status.HTTP_200_OK)

@@ -3,37 +3,30 @@ import json
 from django.test import TransactionTestCase
 from rest_framework.test import APIClient
 
-from authors.apps.articles.extra_methods import create_slug
-from authors.apps.articles.models import Article, ReadingStats
+from authors.apps.articles.models import Article
 from authors.apps.authentication.models import User
 
 
 class TestArticleViews(TransactionTestCase):
+    fixtures = [
+        "authors/fixtures/users.json",
+        "authors/fixtures/articles.json",
+        "authors/fixtures/tags.json",
+    ]
+
     def setUp(self):
         self.client = APIClient()
-        self.user = User.objects.create(
-            username="zack", email="zack@andela.com", is_superuser=False, is_active=True
-        )
-        self.user_2 = User.objects.create(
-            username="author", email="author@andela.com", is_superuser=False, is_active=True
-        )
-        self.user_3 = User.objects.create(
-            username="reader", email="email@email.com", is_superuser=False, is_active=True
-        )
-        self.article_1 = Article.objects.create(
-            slug=create_slug(Article, "Article 1 title"),
-            title="Article 1 title",
-            body="Article body",
-            description="Article description",
-            author=self.user
-        )
+
+        self.user = User.objects.get(username="zack")
+        self.user_2 = User.objects.get(username="author")
+        self.article_1 = Article.objects.get(id=1)
 
         self.article_2 = {
             "article": {
                 "title": "Article 2 title",
                 "body": "Article body",
                 "description": "Article description",
-                "tagList": ["python"]
+                "tagList": ["python"],
             }
         }
         self.article_3 = {
@@ -41,7 +34,7 @@ class TestArticleViews(TransactionTestCase):
                 "title": "Article 3 title",
                 "body": "Article body",
                 "description": "Article description",
-                "tagList": ["python", "java"]
+                "tagList": ["python", "java"],
             }
         }
         self.article_edit = {
@@ -49,14 +42,14 @@ class TestArticleViews(TransactionTestCase):
                 "title": "Article title - edit",
                 "body": "Article body - edit",
                 "description": "Article description - edit",
-                "tagList": ["python"]
+                "tagList": ["python"],
             }
         }
         self.article_missing_fields = {
             "article": {
                 "title": "Article title - edit",
                 "description": "Article description - edit",
-                "tagList": ["python", "java"]
+                "tagList": ["python", "java"],
             }
         }
 
@@ -66,7 +59,7 @@ class TestArticleViews(TransactionTestCase):
         response = self.client.post(
             url,
             content_type="application/json",
-            data=json.dumps(self.article_2)
+            data=json.dumps(self.article_2),
         )
         self.assertEqual(response.status_code, 201)
 
@@ -76,12 +69,12 @@ class TestArticleViews(TransactionTestCase):
         self.client.post(
             url,
             content_type="application/json",
-            data=json.dumps(self.article_2)
+            data=json.dumps(self.article_2),
         )
         response = self.client.post(
             url,
             content_type="application/json",
-            data=json.dumps(self.article_2)
+            data=json.dumps(self.article_2),
         )
         self.assertEqual(response.status_code, 201)
 
@@ -91,7 +84,7 @@ class TestArticleViews(TransactionTestCase):
         response = self.client.post(
             url,
             content_type="application/json",
-            data=json.dumps(self.article_missing_fields)
+            data=json.dumps(self.article_missing_fields),
         )
         self.assertEqual(response.status_code, 400)
 
@@ -101,7 +94,7 @@ class TestArticleViews(TransactionTestCase):
         self.client.post(
             url,
             content_type="application/json",
-            data=json.dumps(self.article_2)
+            data=json.dumps(self.article_2),
         )
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
@@ -125,7 +118,7 @@ class TestArticleViews(TransactionTestCase):
         response = self.client.put(
             url,
             content_type="application/json",
-            data=json.dumps(self.article_edit)
+            data=json.dumps(self.article_edit),
         )
         self.assertEqual(response.status_code, 200)
 
@@ -135,7 +128,7 @@ class TestArticleViews(TransactionTestCase):
         response = self.client.put(
             url,
             content_type="application/json",
-            data=json.dumps(self.article_missing_fields)
+            data=json.dumps(self.article_missing_fields),
         )
         self.assertEqual(response.status_code, 400)
 
@@ -145,7 +138,7 @@ class TestArticleViews(TransactionTestCase):
         response = self.client.put(
             url,
             content_type="application/json",
-            data=json.dumps(self.article_edit)
+            data=json.dumps(self.article_edit),
         )
         self.assertEqual(response.status_code, 401)
 
@@ -155,7 +148,7 @@ class TestArticleViews(TransactionTestCase):
         response = self.client.put(
             url,
             content_type="application/json",
-            data=json.dumps(self.article_edit)
+            data=json.dumps(self.article_edit),
         )
         self.assertEqual(response.status_code, 404)
 
@@ -176,3 +169,38 @@ class TestArticleViews(TransactionTestCase):
         url = "/api/articles/65hg/"
         response = self.client.delete(url)
         self.assertEqual(response.status_code, 404)
+
+    def test_filter_articles_by_author(self):
+        self.client.force_authenticate(user=self.user)
+        url = f"/api/articles/?author=zack"
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response.data["results"]["articles"][0]["author"], "zack"
+        )
+        self.assertEqual(response.data["count"], 4)
+
+    def test_filter_articles_by_tag(self):
+        self.client.force_authenticate(user=self.user)
+        url = f"/api/articles/?tag=javascript"
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data["count"], 3)
+
+        url = f"/api/articles/?tag=python"
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data["count"], 5)
+
+    def test_filter_articles_by_title(self):
+        self.client.force_authenticate(user=self.user)
+        url = f"/api/articles/?title=zen of python"
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data["count"], 1)
+
+    def test_filter_articles_by_search(self):
+        self.client.force_authenticate(user=self.user)
+        url = f"/api/articles/?search=zen of python"
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
