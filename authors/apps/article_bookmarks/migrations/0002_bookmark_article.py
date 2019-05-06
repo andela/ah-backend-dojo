@@ -9,13 +9,13 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('article_likes', '0001_initial'),
+        ('article_bookmarks', '0001_initial'),
         ('articles', '0001_initial'),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='articlelike',
+            model_name='bookmark',
             name='article',
             field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='articles.Article'),
         ),

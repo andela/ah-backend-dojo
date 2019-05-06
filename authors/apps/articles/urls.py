@@ -1,6 +1,6 @@
 from django.urls import path
 from authors.apps.articles.views import (
-    ListCreateArticlesView, 
+    ListCreateArticlesView,
     UpdateDeleteArticleView,
     FavoriteArticleCreate,
     UnFavoriteArticleDestroy
@@ -9,14 +9,14 @@ from authors.apps.articles.views import (
 urlpatterns = [
     # /articles/
     path(
-        "", 
-        ListCreateArticlesView.as_view(), 
+        "",
+        ListCreateArticlesView.as_view(),
         name="articles"
     ),
     # /articles/123/
     path(
-        "<int:article_id>/", 
-        UpdateDeleteArticleView.as_view(), 
+        "<int:article_id>/",
+        UpdateDeleteArticleView.as_view(),
         name="article"
     ),
     path(

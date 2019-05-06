@@ -12,10 +12,10 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name='ArticleTag',
+            name='Bookmark',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('tag_text', models.CharField(max_length=50, unique=True)),
+                ('bookmarked_on', models.DateTimeField(auto_now=True)),
             ],
         ),
     ]
