@@ -1,42 +1,25 @@
 import readtime
-
+from django.db.utils import IntegrityError
 from django.shortcuts import (
-    get_object_or_404,
-    get_list_or_404
+    get_object_or_404
 )
 from django.utils import timezone
-from django.utils.text import slugify
-from rest_framework import (generics,
-                            response,
-                            status)
-from django.utils import timezone
-
-
-from rest_framework.response import Response
-from rest_framework.views import APIView
-from rest_framework import status
-from rest_framework.settings import api_settings
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
-from rest_framework.response import Response
 from rest_framework import generics
+from rest_framework import status
 from rest_framework.permissions import (
-    IsAuthenticated,
-    IsAuthenticatedOrReadOnly,
-    AllowAny,
+    IsAuthenticatedOrReadOnly, AllowAny
 )
+from rest_framework.response import Response
+from rest_framework.settings import api_settings
+from rest_framework.views import APIView
 
-from .models import Article
-from .serializers import ArticleSerializer
-from .extra_methods import create_slug, like_grand_count
-from .mixins import CustomPaginationMixin
-from .extra_methods import create_slug
 from authors.apps.article_tag.views import ArticleTagViewSet
-from .models import Article, FavoriteArticle
+from .extra_methods import create_slug
+from .extra_methods import like_grand_count
+from .mixins import CustomPaginationMixin
+from .models import Article, FavoriteArticle, ReadingStats
 from .serializers import ArticleSerializer, FavoriteArticleSerializer
 
-from authors.apps.profiles.serializers import ProfileSerializer
-from authors.apps.profiles.models import Profile
-from authors.apps.authentication.models import User
 
 class ListCreateArticlesView(APIView, CustomPaginationMixin):
     """
@@ -80,7 +63,8 @@ class ListCreateArticlesView(APIView, CustomPaginationMixin):
         data["time_to_read"] = get_time_to_read(data.get('body'))
 
         """create tag if it doesn't exist"""
-        tag_list = ArticleTagViewSet.create_tag_if_not_exist(ArticleTagViewSet, data.get('tagList'))
+        tag_list = ArticleTagViewSet.create_tag_if_not_exist(
+            ArticleTagViewSet, data.get('tagList'))
         data["tagList"] = tag_list
 
         serializer = ArticleSerializer(data=data)
@@ -93,7 +77,7 @@ class ListCreateArticlesView(APIView, CustomPaginationMixin):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class UpdateDeleteArticleView(APIView):
+class RetrieveUpdateDeleteArticleView(APIView):
     """
     This deals with;
     1. Getting a single article from the db
@@ -102,17 +86,28 @@ class UpdateDeleteArticleView(APIView):
     """
 
     # Route protection
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticatedOrReadOnly,)
 
     def get(cls, request, article_id):
-        article = get_object_or_404(Article, id=article_id, delete_status=False)
+
+        article = get_object_or_404(
+            Article, id=article_id, delete_status=False)
         serializer = ArticleSerializer(article, many=False)
         an_article = dict(serializer.data)
         an_article['likeCount'] = [like_grand_count(an_article)]
+
+        # Make this functionality on available for anonymous users and the read stats are unlimited.
+        read_stats = ReadingStats.objects.get(
+            article=article.id
+        )
+        read_stats.views = int(read_stats.views)+1
+        read_stats.save()
+
         return Response({"article": an_article}, status=status.HTTP_200_OK)
 
     def put(cls, request, article_id):
-        article = get_object_or_404(Article, id=article_id, delete_status=False)
+        article = get_object_or_404(
+            Article, id=article_id, delete_status=False)
         serializer = ArticleSerializer(article, many=False)
         json_data = request.data
         current_user = request.user
@@ -126,10 +121,12 @@ class UpdateDeleteArticleView(APIView):
             article_data["title"] = json_data.get("title")
             article_data["body"] = json_data.get("body")
             article_data["description"] = json_data.get("description")
-            article_data["time_to_read"] = get_time_to_read(json_data.get('body'))
+            article_data["time_to_read"] = get_time_to_read(
+                json_data.get('body'))
 
             """create tag if it doesn't exist"""
-            tag_list = ArticleTagViewSet.create_tag_if_not_exist(ArticleTagViewSet, json_data.get('tagList'))
+            tag_list = ArticleTagViewSet.create_tag_if_not_exist(
+                ArticleTagViewSet, json_data.get('tagList'))
             article_data["tagList"] = tag_list
 
             serializer = ArticleSerializer(article, article_data)
@@ -140,29 +137,32 @@ class UpdateDeleteArticleView(APIView):
                 article['likeCount'] = [like_grand_count(article)]
                 return Response({"article": article}, status=status.HTTP_200_OK)
             return Response(
-                    serializer.errors, status=status.HTTP_400_BAD_REQUEST
+                serializer.errors, status=status.HTTP_400_BAD_REQUEST
             )
 
         return Response(
-                {"error":"you cannot edit an article created by another user"},
-                status=status.HTTP_401_UNAUTHORIZED
+            {"error": "you cannot edit an article created by another user"},
+            status=status.HTTP_401_UNAUTHORIZED
         )
 
     def delete(cls, request, article_id):
-        article = get_object_or_404(Article, id=article_id, delete_status=False)
+        article = get_object_or_404(
+            Article, id=article_id, delete_status=False)
         serializer = ArticleSerializer(article, many=False)
         current_user = request.user
         article_data = dict(serializer.data)
         author = article_data["author"]
 
         if current_user.username == author:
-            article = get_object_or_404(Article, id=article_id, delete_status=False)
+            article = get_object_or_404(
+                Article, id=article_id, delete_status=False)
             article.delete()
             return Response({"messege": "article deleted successfully"}, status=status.HTTP_200_OK)
         return Response(
-                {"error": "you cannot delete an article created by another user"},
-                status=status.HTTP_401_UNAUTHORIZED
+            {"error": "you cannot delete an article created by another user"},
+            status=status.HTTP_401_UNAUTHORIZED
         )
+
 
 class FavoriteArticleCreate(generics.ListCreateAPIView):
     """If the user feels satisfied with the article, he can favourite it """
