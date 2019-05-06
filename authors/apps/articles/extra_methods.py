@@ -5,6 +5,7 @@ from rest_framework import status
 from django.utils.text import slugify
 from .models import Article
 from authors.apps.article_likes.models import ArticleLike
+from authors.apps.author_follows.models import AuthorFollowing
 
 def random_string_generator(size=10, chars=string.ascii_lowercase + string.digits):
     return ''.join(random.choice(chars) for _ in range(size))
@@ -49,3 +50,11 @@ def endpoint_redirect(like_status):
         
     else:
         return False
+
+def author_stats(author_name):
+    count_ = {}
+    followers = len(AuthorFollowing.objects.filter(following=author_name))
+    following = len(AuthorFollowing.objects.filter(follower=author_name))
+    count_["followers"] = followers
+    count_["following"] = following
+    return count_
