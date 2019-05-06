@@ -10,14 +10,18 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('article_rating', '0002_articlerating_article'),
+        ('article_bookmarks', '0002_bookmark_article'),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='articlerating',
+            model_name='bookmark',
             name='user',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, related_name='articlerating', to=settings.AUTH_USER_MODEL),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL, to_field='username'),
+        ),
+        migrations.AlterUniqueTogether(
+            name='bookmark',
+            unique_together={('user', 'article')},
         ),
     ]
