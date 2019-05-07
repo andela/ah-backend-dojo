@@ -76,6 +76,10 @@ class TestProfileViews(TestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data["username"], self.username2)
 
+    def test_list_profiles(self):
+        response = self.test_client.get(
+            "/api/profiles/", HTTP_AUTHORIZATION=f"Bearer {self.token}")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_update_profile_successfully(self):
         response = self.test_client.put(
