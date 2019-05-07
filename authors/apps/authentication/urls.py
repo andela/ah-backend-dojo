@@ -7,6 +7,8 @@ from .views import (
     hello_authors_heaven,
     ActivateUserAccount,
     PasswordResetView,
+    GoogleView,
+    FacebookView,
 )
 
 
@@ -15,6 +17,8 @@ urlpatterns = [
     path("users/", RegistrationAPIView.as_view()),
     path("users/login/", LoginAPIView.as_view()),
     path("welcome/", hello_authors_heaven),
+    path('auth/google/', GoogleView.as_view()),
+    path('auth/facebook/', FacebookView.as_view()),
     path(
         "users/activate/<uidb64>/<token>/",
         ActivateUserAccount.as_view(),

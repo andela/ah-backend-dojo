@@ -25,3 +25,4 @@ omit =
     *wsgi.py
     */settings.py
     */mixins.py
+    */authors/apps/authentication/social.py 
