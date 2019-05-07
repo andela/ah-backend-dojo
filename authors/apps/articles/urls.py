@@ -1,9 +1,10 @@
 from django.urls import path
+
 from authors.apps.articles.views import (
     ListCreateArticlesView,
-    UpdateDeleteArticleView,
+    RetrieveUpdateDeleteArticleView,
     FavoriteArticleCreate,
-    UnFavoriteArticleDestroy
+    UnFavoriteArticleDestroy,
 )
 
 urlpatterns = [
@@ -16,7 +17,7 @@ urlpatterns = [
     # /articles/123/
     path(
         "<int:article_id>/",
-        UpdateDeleteArticleView.as_view(),
+        RetrieveUpdateDeleteArticleView.as_view(),
         name="article"
     ),
     path(
@@ -28,6 +29,6 @@ urlpatterns = [
         '<str:slug>/unfavorite/',
         UnFavoriteArticleDestroy.as_view(),
         name='unfavorite'
-    )
+    ),
 
 ]

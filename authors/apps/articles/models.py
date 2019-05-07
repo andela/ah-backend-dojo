@@ -1,13 +1,17 @@
 from django.db import models
-from authors.apps.authentication.models import User
+from django.dispatch import receiver
+from django.db.models.signals import post_save
 from authors.apps.article_tag.models import ArticleTag
+from authors.apps.authentication.models import User
+
 
 class Article(models.Model):
     slug = models.CharField(max_length=110, unique=True)
     title = models.CharField(max_length=100)
     body = models.TextField()
     description = models.TextField()
-    author = models.ForeignKey(User, to_field="username", on_delete=models.CASCADE)
+    author = models.ForeignKey(
+        User, to_field="username", on_delete=models.CASCADE)
     publish_status = models.BooleanField(default=False)
     createdAt = models.DateTimeField(auto_now_add=True, editable=False)
     updatedAt = models.DateTimeField(auto_now_add=True)
@@ -17,6 +21,7 @@ class Article(models.Model):
 
     def __str__(self):
         return self.title
+
 
 class FavoriteArticle(models.Model):
     """
@@ -28,3 +33,22 @@ class FavoriteArticle(models.Model):
 
     def __str__(self):
         return str(self.pk)
+
+
+class ReadingStats(models.Model):
+    """
+    Model for Reading statistics
+    """
+
+    article = models.ForeignKey(Article, on_delete=models.CASCADE)
+    reads = models.PositiveIntegerField(default=0)
+    views = models.PositiveIntegerField(default=0)
+
+    @receiver(post_save, sender=Article)
+    def create_statistics(sender, instance, created, **kwargs):
+        # Creates an article is created, initialize its statistics
+        if created:
+            ReadingStats.objects.create(article=instance, views=0, reads=0)
+
+    def __str__(self):
+        return f"{self.article} - views: {self.views} - reads: {self.reads}"

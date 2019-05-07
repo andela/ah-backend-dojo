@@ -1,12 +1,10 @@
-import json
-from django.urls import reverse
 from django.test import TestCase
-from rest_framework.test import APIClient
-from authors.apps.authentication.models import User
-from authors.apps.articles.models import Article
-from authors.apps.articles.extra_methods import create_slug
 from rest_framework import status
+from rest_framework.test import APIClient
 
+from authors.apps.articles.extra_methods import create_slug
+from authors.apps.articles.models import Article
+from authors.apps.authentication.models import User
 
 
 class FavoriteArticle(TestCase):
@@ -23,12 +21,12 @@ class FavoriteArticle(TestCase):
             username="author", email="author@andela.com", is_superuser=False, is_active=True
         )
         self.article_1 = Article.objects.create(
-                slug=create_slug(Article, "Article 1 title"),
-                title="Article 1 title",
-                body="Article body",
-                description="Article description",
-                author=self.user
-                )
+            slug=create_slug(Article, "Article 1 title"),
+            title="Article 1 title",
+            body="Article body",
+            description="Article description",
+            author=self.user
+        )
 
     def test_favorite_an_article(self):
         """

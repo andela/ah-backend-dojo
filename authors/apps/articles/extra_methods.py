@@ -1,14 +1,16 @@
 import random
 import string
-from rest_framework.response import Response
-from rest_framework import status
+
 from django.utils.text import slugify
-from .models import Article
+
 from authors.apps.article_likes.models import ArticleLike
 from authors.apps.author_follows.models import AuthorFollowing
+from .models import Article
+
 
 def random_string_generator(size=10, chars=string.ascii_lowercase + string.digits):
     return ''.join(random.choice(chars) for _ in range(size))
+
 
 def create_slug(object_model, title):
     """
@@ -21,9 +23,11 @@ def create_slug(object_model, title):
         return create_slug(title, new_slug)
     return slug
 
+
 def count_(article_object, field):
     total = ArticleLike.objects.filter(article=article_object['id'], like_value=field)
     return len(total)
+
 
 def like_grand_count(article_object):
     data = {
@@ -32,8 +36,8 @@ def like_grand_count(article_object):
     }
     return data
 
-def endpoint_redirect(like_status):
 
+def endpoint_redirect(like_status):
     values = {"like_value": "", "edit_value": "", "response_msg": ""}
 
     if like_status == "like":
@@ -47,9 +51,10 @@ def endpoint_redirect(like_status):
         values["edit_value"] = True
         values["response_msg"] = "disliked"
         return values
-        
+
     else:
         return False
+
 
 def author_stats(author_name):
     count_ = {}
