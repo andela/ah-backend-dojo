@@ -5,7 +5,7 @@ from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import generics
-
+from .utils import validateData
 from authors.apps.articles.models import Article
 from authors.apps.profiles.models import Profile
 from .serializers import (CommentSerializer,
@@ -13,13 +13,12 @@ from .serializers import (CommentSerializer,
 from .models import (Comment, CommentLikeDislike)
 from .permissions import IsOwnerOrReadOnly
 
-
 class ListCreateCommentView(APIView):
     permission_classes = [IsAuthenticatedOrReadOnly]
     serializer_class = CommentSerializer
 
     def post(self, request, *args, **kwargs):
-        comment = request.data
+        comment = request.data.get('comment', {})
 
         # get the article or return a 404 error
         article = get_object_or_404(Article, slug=kwargs["slug"])
@@ -27,15 +26,38 @@ class ListCreateCommentView(APIView):
         # user the current Id pf user to get their Profile object
         current_user = request.user
         author = Profile.objects.get(user=current_user)
+
+        end_index = comment.get('end_index', 0)
+        start_index = comment.get('start_index', 0)
+        if "start_index" in comment and "end_index" in comment:
+            is_data_valid = validateData(end_index,start_index,article)
+            if is_data_valid == True:
+                #get the exact hightlighted value
+                article_section = article.body[start_index:end_index]
+                comment['highlighted_text'] = article_section
+            else:
+                return is_data_valid
+
+        
         serializer = self.serializer_class(
             data=comment, context=({"article": article})
         )
 
         serializer.is_valid(raise_exception=True)
         serializer.save(article=article, author=author)
-        return Response(
-            data={"comment": serializer.data}, status=status.HTTP_201_CREATED
-        )
+        if "start_index" in comment and "end_index" in comment:
+            comment_data = serializer.data
+        else:
+            comment_data = {
+                "created_at": serializer.data['created_at'],
+                "updated_at": serializer.data['updated_at'],
+                "author": serializer.data['author'],
+                "body": serializer.data['body'],
+                "id": serializer.data['id']
+            }
+
+        return Response({"comment": comment_data},
+                                 status=status.HTTP_201_CREATED)
 
     def get(self, request, *args, **kwargs):
         """Get comments on an article"""
@@ -67,6 +89,41 @@ class UpdateDestroyCommentView(generics.RetrieveUpdateDestroyAPIView):
 
     def perform_destroy(self, instance):
         instance.delete()
+
+    def update(self, request, slug, pk):
+        """
+        Function to edit comment body not the highlighted text
+        """
+        comment_data = get_object_or_404(Comment, pk=pk)
+        article = get_object_or_404(Article, pk=comment_data.article.pk)
+        user_profile = Profile.objects.get(user=request.user)
+        update_data = request.data.get('comment', {})
+
+        end_index = update_data.get('end_index', 0)
+        start_index = update_data.get('start_index', 0)
+
+        if "start_index" in update_data and "end_index" in update_data:
+            return Response( 
+               data={"message": "You cannot edit the highlighted text"}, 
+               status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if comment_data.author != user_profile:
+            return Response( 
+               data={"message": "You do not have permission to perform this action."}, 
+               status=status.HTTP_403_FORBIDDEN,
+            )
+
+        serializer = self.serializer_class(comment_data, data=update_data,
+            partial=True, context={"article": article})
+        serializer.is_valid(raise_exception=True)
+        if comment_data.body == update_data["body"]:
+            return Response(
+                data={"message": "Your comment is not new, make sure you change the comment body"}, 
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 class LikeComment(generics.GenericAPIView):
     permission_classes = (IsAuthenticatedOrReadOnly,)
@@ -128,7 +185,7 @@ class DislikeComment(generics.DestroyAPIView):
             queryset.delete()
             return Response(
                     {
-                        "message": "your like has been successfully revoked"
+                        "message": "Your like has been successfully revoked"
                     },
                     status.HTTP_200_OK
                 )

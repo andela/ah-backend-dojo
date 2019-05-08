@@ -13,7 +13,7 @@ class TestDislikeAndLikeCommment(BaseCommentTests):
         response = self.client.post(
             f"/api/articles/{self.article.slug}/comments/",
             content_type="application/json",
-            data=json.dumps({"body": "My first comment"}),
+            data=json.dumps({"comment":{"body": "Fake article"}}),
         )
         self.assertEqual(response.status_code, 201)
         response1 = self.client.post(
@@ -48,7 +48,7 @@ class TestDislikeAndLikeCommment(BaseCommentTests):
         self.assertEqual(response4.status_code, 200)
         self.assertEqual(
             response4.data["message"],
-            "your like has been successfully revoked",
+            "Your like has been successfully revoked",
         )
         response5 = self.client.delete(
             f"/api/articles/{self.article.slug}/comments/1/dislike",

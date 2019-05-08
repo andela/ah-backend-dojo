@@ -25,11 +25,11 @@ class TestListCreateComment(BaseCommentTests):
         response = self.client.put(
             f"/api/articles/{str(self.article.slug)}/comments/{self.comment.id}/",
             content_type="application/json",
-            data=json.dumps({"body": "Fake article"}),
+            data=json.dumps({"comment":{"body": "Fake article"}}),
         )
         self.assertEqual(response.status_code, 403)
         self.assertEqual(
-            response.data["detail"],
+            response.data["message"],
             "You do not have permission to perform this action.",
         )
 
@@ -39,13 +39,38 @@ class TestListCreateComment(BaseCommentTests):
         response = self.client.put(
             f"/api/articles/{str(self.article.slug)}/comments/{self.comment.id}/",
             content_type="application/json",
-            data=json.dumps({"body": "Nice article"}),
+            data=json.dumps({"comment":{"body": "Nice article"}}),
         )
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data["body"], "Nice article")
         self.assertEqual(
             response.data["author"]["username"], self.user.username
         )
+
+    def test_cannot_update_a_highlighted_text_of_a_comment(self):
+        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {self.user.token}")
+
+        response = self.client.put(
+            f"/api/articles/{str(self.article.slug)}/comments/{self.comment.id}/",
+            content_type="application/json",
+            data=json.dumps({"comment":{
+                      "body": "Nice article",
+                      "start_index": 2,
+                      "end_index": 2
+                      }}),
+        )
+        self.assertEqual(response.status_code, 400)
+
+    def test_comment_body_is_not_changed(self):
+        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {self.user.token}")
+
+        response = self.client.put(
+            f"/api/articles/{str(self.article.slug)}/comments/{self.comment.id}/",
+            content_type="application/json",
+            data=json.dumps({"comment":{"body": "My first comment"}}),
+        )
+        self.assertEqual(response.status_code, 400)
+
 
     def test_cannot_delete_a_comment_created_by_another_user(self):
         self.client.credentials(
