@@ -1,0 +1,16 @@
+[
+  {
+    "model": "article_tag.articletag",
+    "pk": 1,
+    "fields": {
+      "tag_text": "python"
+    }
+  },
+  {
+    "model": "article_tag.articletag",
+    "pk": 2,
+    "fields": {
+      "tag_text": "javascript"
+    }
+  }
+]

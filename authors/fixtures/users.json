@@ -1,0 +1,38 @@
+[
+  {
+    "model": "authentication.user",
+    "pk": 1,
+    "fields": {
+      "password": "pbkdf2_sha256$120000$2ohEHR50gKGL$r1prf9hVl/DAQKIj34l8YZxC/0GcZchkbOCGJmb0Lcs=",
+      "last_login": null,
+      "is_superuser": false,
+      "username": "author",
+      "email": "ahbackenddojo@gmail.com",
+      "is_active": true,
+      "is_staff": false,
+      "created_at": "2019-05-06T20:58:25.986Z",
+      "updated_at": "2019-05-06T20:59:13.886Z",
+      "is_email_verified": true,
+      "groups": [],
+      "user_permissions": []
+    }
+  },
+  {
+    "model": "authentication.user",
+    "pk": 2,
+    "fields": {
+      "password": "pbkdf2_sha256$120000$rhZlE2ugiQX8$G0CS9rphWmn4cMoItYtv8u/l2r/Ew58aTUYKiaJ9d+8=",
+      "last_login": null,
+      "is_superuser": true,
+      "username": "zack",
+      "email": "zack@mail.com",
+      "is_active": true,
+      "is_staff": true,
+      "created_at": "2019-05-06T21:01:54.839Z",
+      "updated_at": "2019-05-06T21:01:54.839Z",
+      "is_email_verified": true,
+      "groups": [],
+      "user_permissions": []
+    }
+  }
+]
