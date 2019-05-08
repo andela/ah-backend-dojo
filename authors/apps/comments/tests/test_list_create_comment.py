@@ -19,7 +19,7 @@ class TestListCreateComment(BaseCommentTests):
         response = self.client.post(
             f"/api/articles/{str(self.article.slug)}/comments/",
             content_type="application/json",
-            data=json.dumps({"body": "Fake article"}),
+            data=json.dumps({"comment":{"body": "Fake article"}}),
         )
         self.assertEqual(response.status_code, 403)
         self.assertEqual(
@@ -31,7 +31,7 @@ class TestListCreateComment(BaseCommentTests):
         self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {self.user.token}")
         url = f"/api/articles/{self.article.slug}/comments/"
         response = self.client.post(
-            url, content_type="application/json", data=json.dumps({"body": ""})
+            url, content_type="application/json", data=json.dumps({"comment":{"body": ""}})
         )
         self.assertEqual(response.status_code, 400)
 
@@ -44,7 +44,7 @@ class TestListCreateComment(BaseCommentTests):
         response = self.client.post(
             f"/api/articles/{self.article.slug}/comments/",
             content_type="application/json",
-            data=json.dumps({"body": "My first comment"}),
+            data=json.dumps({"comment":{"body": "My first comment"}}),
         )
         self.assertEqual(response.status_code, 201)
         self.assertEqual(response.data["comment"]["body"], "My first comment")
@@ -63,3 +63,59 @@ class TestListCreateComment(BaseCommentTests):
         self.assertEqual(response.status_code, 200)
         self.assertTrue(isinstance(response.data["comments"], list))
         self.assertTrue(response.data["commentsCount"], 1)
+
+    def test_highlighted_and_comment_on_article(self):
+        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {self.user.token}")
+        url = f"/api/articles/{self.article.slug}/comments/"
+        response = self.client.post(
+            url, content_type="application/json", 
+            data=json.dumps({"comment":{
+                "body": "This field may not be blank.",
+                "start_index":1,
+                "end_index":3
+                }
+                })
+        )
+        self.assertEqual(response.status_code, 201)
+    
+    def test_highlighted_and_comment_on_article_with_string_index(self):
+        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {self.user.token}")
+        url = f"/api/articles/{self.article.slug}/comments/"
+        response = self.client.post(
+            url, content_type="application/json", 
+            data=json.dumps({"comment":{
+                "body": "This field may not be blank.",
+                "start_index":"jhjg",
+                "end_index":13
+                }
+                })
+        )
+        self.assertEqual(response.status_code, 400)
+
+    def test_highlighted_and_comment_on_article_with_start_index_greater_than_end_index(self):
+        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {self.user.token}")
+        url = f"/api/articles/{self.article.slug}/comments/"
+        response = self.client.post(
+            url, content_type="application/json", 
+            data=json.dumps({"comment":{
+                "body": "This field may not be blank.",
+                "start_index":10,
+                "end_index":4
+                }
+                })
+        )
+        self.assertEqual(response.status_code, 400)
+
+    def test_highlighted_and_comment_on_article_with_out_of_index(self):
+        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {self.user.token}")
+        url = f"/api/articles/{self.article.slug}/comments/"
+        response = self.client.post(
+            url, content_type="application/json", 
+            data=json.dumps({"comment":{
+                "body": "This field may not be blank.",
+                "start_index":1000,
+                "end_index":6000
+                }
+                })
+        )
+        self.assertEqual(response.status_code, 400)
