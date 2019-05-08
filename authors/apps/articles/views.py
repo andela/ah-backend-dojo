@@ -3,12 +3,17 @@ from django.db.models import Q
 from django.shortcuts import (
     get_object_or_404
 )
+from django.core.mail import EmailMultiAlternatives
+from django.contrib.sites.shortcuts import get_current_site
 from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
+from django.template.loader import render_to_string
+from rest_framework.renderers import JSONRenderer
 from rest_framework import generics
 from rest_framework import status
+from rest_framework.viewsets import ModelViewSet
 from rest_framework.permissions import (
-    IsAuthenticatedOrReadOnly
+    IsAuthenticatedOrReadOnly, AllowAny, IsAuthenticated
 )
 from rest_framework.response import Response
 from rest_framework.settings import api_settings
@@ -19,8 +24,9 @@ from .extra_methods import create_slug
 from .extra_methods import like_grand_count
 from .mixins import CustomPaginationMixin
 from .models import Article, FavoriteArticle, ReadingStats
-from .serializers import ArticleSerializer, FavoriteArticleSerializer
-
+from .serializers import ArticleSerializer, FavoriteArticleSerializer, EmailSerializer
+from authors.apps.authentication.models import User
+from authors.apps.authentication.serializers import UserSerializer 
 
 class ListCreateArticlesView(APIView, CustomPaginationMixin):
     """
@@ -265,9 +271,83 @@ class UnFavoriteArticleDestroy(generics.DestroyAPIView):
             status.HTTP_200_OK
         )
 
+        
+
+class ShareOnFaceBookView(APIView):
+    permission_classes = (IsAuthenticated,)
+    renderer_classes = (JSONRenderer, )
+
+    def post(self, request, *args, **kwargs):
+        facebook_share_url = "https://www.facebook.com/sharer/sharer.php?u="
+        return social_media_share(ShareOnFaceBookView, request, kwargs, facebook_share_url)
+
+class ShareOnTwitterView(APIView):
+    permission_classes = (IsAuthenticated,)
+    renderer_classes = (JSONRenderer, )
+
+    def post(self, request, *args, **kwargs):
+        twitter_share_url = "https://twitter.com/home?status="
+        return social_media_share(ShareOnTwitterView, request, kwargs, twitter_share_url)
+
+def social_media_share(self, request, kwargs, share_url):
+    server_url = f"https://{get_current_site(request)}"
+    articles_endpoint = 'api/articles'
+    share_link = f"{server_url}/{articles_endpoint}/{kwargs.get('article_id')}/"
+    message = {"share_link": f"{share_url}{share_link}"}
+    return Response(message)
+
+class ShareEmailView(ModelViewSet):
+    """creating links for sharing articles via facebook
+    """
+
+    permission_classes = (IsAuthenticated,)
+    renderer_classes = (JSONRenderer, )
+    serializer_class = EmailSerializer
+
+    def create(self, request, *args, **kwargs):
+        article = Article.objects.get(id=self.kwargs.get("article_id"))
+        serializer = self.serializer_class(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        reciever_mail = serializer.data['email']
+        
+        user_obj = User.objects.get(username=request.user.username)
+        user_serializer = UserSerializer(user_obj)
+        article_serializer = ArticleSerializer(article)
+        article_id = article.id
+        sender_email = request.user.email
+
+        server_url = f'https://{get_current_site(request)}'
+        articles_endpoint = 'api/articles'
+        email_share_url = f"{server_url}/{articles_endpoint}/{article_id}/"
+        message = {"message": "Your article has been shared successfully"}
+        article_data = article_serializer.data
+        article_data["body"] = f"{article_data['body'][:300]} ..."
+        share_article_email(user_serializer.data, article_data, sender_email, reciever_mail, email_share_url)
+
+        return Response(message)
+
 
 def get_time_to_read(body):
     '''
     Method to calculate the time to read
     '''
     return readtime.of_text(body).minutes
+
+def share_article_email(user, article, sender_email, receiver_email, article_link):
+    """
+    Function that sends an email
+    """
+    text_content = "Account Activation Email"
+    subject = f"Author's Haven: {article.get('title')}"
+    template_name = "email_share_article.html"
+    recipients = [receiver_email]
+
+    context = {"user": user, "activate_url": article_link, "article": article}
+
+    html_content = render_to_string(template_name, context)
+    email = EmailMultiAlternatives(
+        subject, text_content, sender_email, recipients
+    )
+    email.attach_alternative(html_content, "text/html")
+
+    email.send()

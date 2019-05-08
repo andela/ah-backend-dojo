@@ -69,3 +69,10 @@ class ReadingstatsSerializer(serializers.ModelSerializer):
     class Meta:
         fields = ('article', 'views', 'reads')
         model = ReadingStats
+
+class EmailSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+
+    class Meta:
+        fields = ['email', ]
+

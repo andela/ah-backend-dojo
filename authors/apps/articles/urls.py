@@ -5,6 +5,9 @@ from authors.apps.articles.views import (
     RetrieveUpdateDeleteArticleView,
     FavoriteArticleCreate,
     UnFavoriteArticleDestroy,
+    ShareOnFaceBookView,
+    ShareOnTwitterView,
+    ShareEmailView,
 )
 
 urlpatterns = [
@@ -30,5 +33,20 @@ urlpatterns = [
         UnFavoriteArticleDestroy.as_view(),
         name='unfavorite'
     ),
+    path(
+        '<int:article_id>/facebookshare/',
+        ShareOnFaceBookView.as_view(),
+        name='share_on_facebook'
+    ),
+    path(
+        '<int:article_id>/twittershare/',
+        ShareOnTwitterView.as_view(),
+        name='share_on_twitter'
+    ),
+    path(
+        '<int:article_id>/emailshare/',
+        ShareEmailView.as_view({'post':'create'}),
+        name='share_on_email'
+    )
 
 ]
