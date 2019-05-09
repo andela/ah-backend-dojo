@@ -1,6 +1,9 @@
+"""module containing url patterns for the comments app"""
 from django.urls import path
-from .views import (ListCreateCommentView, UpdateDestroyCommentView,
-                    LikeComment,DislikeComment)
+from authors.apps.comments.views import (
+    ListCreateCommentView, UpdateDestroyCommentView,
+    LikeComment, DislikeComment, CommentHistoryViewSet
+)
 
 urlpatterns = [
     path(
@@ -16,5 +19,7 @@ urlpatterns = [
     path('comments/<int:pk>/like',
          LikeComment.as_view()),
     path('comments/<int:pk>/dislike',
-         DislikeComment.as_view())
+         DislikeComment.as_view()),
+    path('comments/<int:pk>/history',
+         CommentHistoryViewSet.as_view({"get": "list"}))
 ]
