@@ -30,7 +30,6 @@ from rest_framework import authentication, permissions
 from rest_framework.decorators import api_view, permission_classes
 
 from drf_yasg.utils import swagger_auto_schema
-from drf_yasg.utils import swagger_auto_schema
 
 from .renderers import UserJSONRenderer
 from .models import User
@@ -39,6 +38,10 @@ from .serializers import (
     RegistrationSerializer,
     UserSerializer,
     PasswordSerializer,
+    GoogleHandler,
+    GoogleSerializer,
+    FacebookHandler,
+    FacebookSerializer,
 )
 
 
@@ -298,3 +301,47 @@ def send_email(**kwargs):
     email = EmailMultiAlternatives(subject, text_content, sender, receipient)
     email.attach_alternative(html_content, "text/html")
     email.send()
+
+class GoogleView(APIView):# pragma: no cover
+        
+    permission_classes = (AllowAny,)
+    renderer_classes = (UserJSONRenderer,)
+    serializer_class = GoogleSerializer
+
+    @swagger_auto_schema(
+            operation_description="Login a User using Google.",
+            operation_id="Login a user using google",
+            request_body=serializer_class,
+            responses={201: serializer_class(many=False), 400: "BAD REQUEST"},
+    )
+
+    def post(self, request):
+        user = request.data.get('user', {})
+
+        serializer = self.serializer_class(data=user)
+        serializer.is_valid(raise_exception=True)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class FacebookView(APIView):# pragma: no cover
+    
+    permission_classes = (AllowAny,)
+    renderer_classes = (UserJSONRenderer,)
+    serializer_class = FacebookSerializer
+
+    @swagger_auto_schema(
+            operation_description="Login a User using Facebook.",
+            operation_id="Login a user using facebook",
+            request_body=serializer_class,
+            responses={201: serializer_class(many=False), 400: "BAD REQUEST"},
+    )
+
+    def post(self, request):
+        user = request.data.get('user', {})
+
+        serializer = self.serializer_class(data=user)
+        serializer.is_valid(raise_exception=True)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
+

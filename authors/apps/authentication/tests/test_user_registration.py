@@ -116,25 +116,6 @@ class TestUserRegistrationView(TestCase):
             "This field may not be blank.",
         )
         
-    @pytest.mark.xfail
-    def test_register_with_password_same_as_username(self):
-
-        self.user["user"]["username"] = "Kalmuiygsic123"
-        self.user["user"]["email"] = "Kalmsic123@mail.com"
-
-        self.user["user"]["password"] = "Kalmuiygsic123"
-
-        response = self.client.post(
-            "/api/users/",
-            content_type="application/json",
-            data=json.dumps(self.user),
-        )
-        self.assertEqual(response.status_code, 400)
-        self.assertEqual(
-            response.data["errors"]["username"][0],
-            "Password cannot be the same as the username",
-        )
-
     def test_register_with_space_character_in_username(self):
 
         self.user["user"]["username"] = "Kalmsi  c123"
@@ -226,3 +207,4 @@ class TestUserRegistrationView(TestCase):
            content_type="application/json",
         )
         self.assertEqual(response.data, "Activation link has expired")
+

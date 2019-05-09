@@ -1,6 +1,11 @@
 from django.contrib.auth import authenticate
 
 from rest_framework import serializers
+from .social import (
+    GoogleHandler,
+    FacebookHandler,
+    register_social_user,
+)
 
 from .models import User
 import re
@@ -177,3 +182,41 @@ def get_validated_password_or_error(password):
             raise serializers.ValidationError(str(error))
         else:
             return password
+
+class GoogleSerializer(serializers.Serializer):
+    auth_token = serializers.CharField()
+
+    def validate_auth_token(self, auth_token):
+
+        user_data = GoogleHandler.validate(auth_token)
+        try:
+            user_data['email']
+        except Exception:
+            raise serializers.ValidationError(
+                "The token provided is invalid or has expired"
+            )
+
+        email = user_data['email']
+        username = user_data['name']
+
+        return register_social_user(email=email, username=username)
+
+
+class FacebookSerializer(serializers.Serializer):
+    auth_token = serializers.CharField()
+
+    def validate_auth_token(self, auth_token):
+
+        user_data = FacebookHandler.validate(auth_token)
+        try:
+            user_data['email']
+        except Exception:
+            raise serializers.ValidationError(
+                "The token provided is invalid or has expired"
+            )
+
+        email = user_data['email']
+        username = user_data['name']
+
+        return register_social_user(email=email, username=username)
+
