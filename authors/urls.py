@@ -48,6 +48,7 @@ urlpatterns = [
     path('api/articles/<slug>/', include('authors.apps.comments.urls')),
     path('api/authors/', include('authors.apps.author_follows.urls')),
     path('api/', include('authors.apps.article_bookmarks.urls')),
+    path('api/', include('authors.apps.notifications.urls')),
     path(
         "docs/",
         schema_view.with_ui("swagger", cache_timeout=0),

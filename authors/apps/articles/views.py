@@ -9,16 +9,17 @@ from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
 from django.template.loader import render_to_string
 from rest_framework.renderers import JSONRenderer
-from rest_framework import generics
-from rest_framework import status
 from rest_framework.viewsets import ModelViewSet
-from rest_framework.permissions import (
-    IsAuthenticatedOrReadOnly, AllowAny, IsAuthenticated
-)
+from django.utils.text import slugify
+from rest_framework import generics, status
 from rest_framework.response import Response
-from rest_framework.settings import api_settings
 from rest_framework.views import APIView
-
+from rest_framework.permissions import (
+    IsAuthenticated,
+    IsAuthenticatedOrReadOnly,
+    AllowAny
+)
+from rest_framework.settings import api_settings
 from authors.apps.article_tag.views import ArticleTagViewSet
 from .extra_methods import create_slug
 from .extra_methods import like_grand_count
