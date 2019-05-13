@@ -150,6 +150,35 @@ class TestUserRegistrationView(TestCase):
         self.assertEqual(response.data["username"], "kalsmic")
         self.assertIn("token",response.data)
 
+    def test_register_with_password_similar_to_username(self):
+
+        self.user["user"]["password"] = "Password123"
+        self.user["user"]["email"] = "bisonlou@gmail.com"
+        self.user["user"]["username"] = "Password123"
+
+        response = self.client.post(
+            "/api/users/",
+            content_type="application/json",
+            data=json.dumps(self.user),
+        )
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.data['errors']['error'][0], "Your password should not be the same as or contain your username")
+
+    def test_register_with_password_containing_username(self):
+
+        self.user["user"]["password"] = "Password123456"
+        self.user["user"]["email"] = "bisonlou@gmail.com"
+        self.user["user"]["username"] = "Password123"
+
+        response = self.client.post(
+            "/api/users/",
+            content_type="application/json",
+            data=json.dumps(self.user),
+        )
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.data['errors']['error'][0], "Your password should not be the same as or contain your username")
+
+
     def test_succesful_user_activation(self):
         '''
         Ensure that a user is succesfully activated

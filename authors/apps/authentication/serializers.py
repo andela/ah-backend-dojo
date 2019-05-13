@@ -1,11 +1,7 @@
 from django.contrib.auth import authenticate
 
 from rest_framework import serializers
-from .social import (
-    GoogleHandler,
-    FacebookHandler,
-    register_social_user,
-)
+from .social import GoogleHandler, FacebookHandler, register_social_user
 
 from .models import User
 import re
@@ -34,6 +30,11 @@ class RegistrationSerializer(serializers.ModelSerializer):
         # Use the `create_user` method we wrote earlier to create a new user.
 
         return User.objects.create_user(**validated_data)
+
+    def validate(self, data):
+        # A user should not have a username similar to the password
+
+        return get_unique_username_and_password(data)
 
     def validate_password(self, password):
         return get_validated_password_or_error(password)
@@ -158,30 +159,45 @@ class UserSerializer(serializers.ModelSerializer):
 
         return instance
 
+
 class PasswordSerializer(serializers.Serializer):
     password = serializers.CharField(
         max_length=128, min_length=8, write_only=True
     )
+    username = serializers.HiddenField(default="")
 
     def validate_password(self, password):
         return get_validated_password_or_error(password)
-        
+
 
 def get_validated_password_or_error(password):
-        error = None
-        if not re.search("[0-9]", password):
-            # Check if password contains a digit
-            error = "Password should be alpha Numeric"
-        elif not re.search("[A-Z]", password):
-            # Check if password contains an upper case letter
-            error = "Password should contain at least one Upper Case letter"
-        elif not re.search("[a-z]", password):
-            # Check if password contains a lower case letter
-            error = "Password should contain at least one lower Case letter"
-        if error:
-            raise serializers.ValidationError(str(error))
-        else:
-            return password
+    error = None
+    if not re.search("[0-9]", password):
+        # Check if password contains a digit
+        error = "Password should be alpha Numeric"
+    elif not re.search("[A-Z]", password):
+        # Check if password contains an upper case letter
+        error = "Password should contain at least one Upper Case letter"
+    elif not re.search("[a-z]", password):
+        # Check if password contains a lower case letter
+        error = "Password should contain at least one lower Case letter"
+    if error:
+        raise serializers.ValidationError(str(error))
+    else:
+        return password
+
+
+def get_unique_username_and_password(data):
+    username = data.get("username", None)
+    password = data.get("password", None)
+
+    if username.lower() in password.lower():
+        raise serializers.ValidationError(
+            "Your password should not be the same as or contain your username"
+        )
+
+    return data
+
 
 class GoogleSerializer(serializers.Serializer):
     auth_token = serializers.CharField()
@@ -190,14 +206,14 @@ class GoogleSerializer(serializers.Serializer):
 
         user_data = GoogleHandler.validate(auth_token)
         try:
-            user_data['email']
+            user_data["email"]
         except Exception:
             raise serializers.ValidationError(
                 "The token provided is invalid or has expired"
             )
 
-        email = user_data['email']
-        username = user_data['name']
+        email = user_data["email"]
+        username = user_data["name"]
 
         return register_social_user(email=email, username=username)
 
@@ -209,14 +225,13 @@ class FacebookSerializer(serializers.Serializer):
 
         user_data = FacebookHandler.validate(auth_token)
         try:
-            user_data['email']
+            user_data["email"]
         except Exception:
             raise serializers.ValidationError(
                 "The token provided is invalid or has expired"
             )
 
-        email = user_data['email']
-        username = user_data['name']
+        email = user_data["email"]
+        username = user_data["name"]
 
         return register_social_user(email=email, username=username)
-
