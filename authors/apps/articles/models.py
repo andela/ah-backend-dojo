@@ -41,14 +41,11 @@ class ReadingStats(models.Model):
     """
 
     article = models.ForeignKey(Article, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
     reads = models.PositiveIntegerField(default=0)
     views = models.PositiveIntegerField(default=0)
-
-    @receiver(post_save, sender=Article)
-    def create_statistics(sender, instance, created, **kwargs):
-        # Creates an article is created, initialize its statistics
-        if created:
-            ReadingStats.objects.create(article=instance, views=0, reads=0)
+    class Meta:
+        unique_together = ('article','user')
 
     def __str__(self):
-        return f"{self.article} - views: {self.views} - reads: {self.reads}"
+        return f"{self.user} - {self.article}"

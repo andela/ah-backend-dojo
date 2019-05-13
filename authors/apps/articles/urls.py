@@ -8,6 +8,7 @@ from authors.apps.articles.views import (
     ShareOnFaceBookView,
     ShareOnTwitterView,
     ShareEmailView,
+    ArticleReadStatView
 )
 
 urlpatterns = [
@@ -17,6 +18,7 @@ urlpatterns = [
         ListCreateArticlesView.as_view(),
         name="articles"
     ),
+
     # /articles/123/
     path(
         "<int:article_id>/",
@@ -47,6 +49,11 @@ urlpatterns = [
         '<int:article_id>/emailshare/',
         ShareEmailView.as_view({'post':'create'}),
         name='share_on_email'
-    )
+    ),
+    path(
+        "<int:article_id>/read_stat/",
+        ArticleReadStatView.as_view(),
+        name="article-reads-stats"
+    ),
 
 ]

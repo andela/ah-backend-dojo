@@ -5,6 +5,7 @@ from rest_framework.test import APIClient
 
 from authors.apps.articles.models import Article
 from authors.apps.authentication.models import User
+from authors.apps.articles.models import ReadingStats
 
 
 class TestArticleViews(TransactionTestCase):
@@ -104,7 +105,108 @@ class TestArticleViews(TransactionTestCase):
         url = f"/api/articles/{self.article_1.id}/"
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data['article']['read_stats']['views'], 0)
+
+    def test_article_view_by_anonymous_user_should_not_increase_the_view_count(
+        self
+    ):
+        url = f"/api/articles/{self.article_1.id}/"
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data["article"]["read_stats"]["views"], 0)
+        self.assertEqual(response.data["article"]["read_stats"]["reads"], 0)
+
+        count = ReadingStats.objects.all().filter(article=self.article_1.id)
+        self.assertEqual(len(count), 0)
+
+    def test_article_first_time_view_by_authenticated_user_should_increase_the_view_count(
+        self
+    ):
+        self.client.force_authenticate(user=self.user_2)
+        url = f"/api/articles/{self.article_1.id}/"
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data["article"]["read_stats"]["views"], 0)
+        self.assertEqual(response.data["article"]["read_stats"]["reads"], 0)
+
+        count = ReadingStats.objects.all().filter(article=self.article_1.id)
+        self.assertEqual(len(count), 1)
+
+    def test_article_non_first_time_view_by_authenticated_user_should_not_increase_the_view_count(
+        self
+    ):
+        ReadingStats.objects.create(
+            article=self.article_1, user=self.user_2, views=1, reads=0
+        )
+
+        self.client.force_authenticate(user=self.user_2)
+        url = f"/api/articles/{self.article_1.id}/"
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data["article"]["read_stats"]["views"], 1)
+        self.assertEqual(response.data["article"]["read_stats"]["reads"], 0)
+
+        count = ReadingStats.objects.all().filter(
+            article=self.article_1.id, user=self.user_2
+        )
+        self.assertEqual(len(count), 1)
+
+    def test_first_time_read_by_authenticated_user_should_increase_the_read_count(
+        self
+    ):
+        ReadingStats.objects.create(
+            article=self.article_1, user=self.user_2, views=1, reads=0
+        )
+
+        self.client.force_authenticate(user=self.user_2)
+        url = f"/api/articles/{self.article_1.id}/read_stat/"
+        response = self.client.post(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response.data["message"],
+            f"Your read statistics for article with id {self.article_1.id} registered successfully",
+        )
+
+        count = ReadingStats.objects.get(
+            article=self.article_1.id, user=self.user_2
+        )
+        self.assertEqual(count.views, 1)
+        self.assertEqual(count.reads, 1)
+
+    def test_not_first_time_read_by_authenticated_user_should_not_increase_the_read_count(
+        self
+    ):
+
+        ReadingStats.objects.create(
+            article=self.article_1, user=self.user_2, views=1, reads=1
+        )
+
+        self.client.force_authenticate(user=self.user_2)
+        url = f"/api/articles/{self.article_1.id}/read_stat/"
+        response = self.client.post(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response.data["message"],
+            f"Your read statistics for article with id {self.article_1.id} registered successfully",
+        )
+
+        count = ReadingStats.objects.get(
+            article=self.article_1.id, user=self.user_2
+        )
+        self.assertEqual(count.views, 1)
+        self.assertEqual(count.reads, 1)
+
+    def test_article_read_by_author_user_should_not_increase_the_read_count(
+        self
+    ):
+
+        self.client.force_authenticate(user=self.user)
+        url = f"/api/articles/{self.article_1.id}/read_stat/"
+        response = self.client.post(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response.data["message"],
+            "Your Read statistics are not captured for an article you authored",
+        )
 
     def test_get_an_article_invalid_slug(self):
         self.client.force_authenticate(user=self.user)

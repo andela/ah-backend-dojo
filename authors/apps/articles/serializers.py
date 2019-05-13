@@ -15,17 +15,14 @@ class ArticleSerializer(serializers.ModelSerializer):
     )
     read_stats = serializers.SerializerMethodField()
 
-    # read_stats = ReadingstatsSerializer(read_only=True)
-
     def get_read_stats(self, instance):
-        read_obj = ReadingStats.objects.get(article=instance.id)
+        read_results = ReadingStats.objects.all().filter(article=instance.id)
+        views = read_results.filter(views=1).count()
+        reads = read_results.filter(reads=1).count()
 
-        print(read_obj.id)
-        serializer = ReadingstatsSerializer(read_obj)
-        data = serializer.data
         return {
-            "views": data['views'],
-            'reads': data['reads']
+            "views": views,
+            "reads": reads
         }
 
     class Meta:
@@ -61,13 +58,13 @@ class FavoriteArticleSerializer(serializers.ModelSerializer):
         read_only_fields = ['favorited_by', 'article']
 
 
-class ReadingstatsSerializer(serializers.ModelSerializer):
+class ReadingStatsSerializer(serializers.ModelSerializer):
     """
     Reading stats serializer
     """
 
     class Meta:
-        fields = ('article', 'views', 'reads')
+        fields = ('article', 'user')
         model = ReadingStats
 
 class EmailSerializer(serializers.Serializer):
@@ -75,4 +72,3 @@ class EmailSerializer(serializers.Serializer):
 
     class Meta:
         fields = ['email', ]
-
