@@ -115,3 +115,40 @@ class TestListCreateComment(BaseCommentTests):
         self.assertEqual(
             response.data["author"]["username"], self.user.username
         )
+
+    def test_list_comment_edit_history(self):
+        test_token = self.user.token
+        test_comment_id = self.comment.id
+        test_slug = self.article.slug
+        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {test_token}")
+        self.client.put(
+            f"/api/articles/{str(test_slug)}/comments/{test_comment_id}/",
+            content_type="application/json",
+            data=json.dumps({"comment":{"body": "Very Nice article"}}),
+        )
+        response = self.client.get(
+            f"/api/articles/{str(test_slug)}/comments/{test_comment_id}/history",
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 200)
+
+    def test_list_comment_edit_history_no_article(self):
+        self.client.credentials(
+            HTTP_AUTHORIZATION=f"Bearer {self.user2.token}"
+        )
+        response = self.client.get(
+            f"/api/articles/{str(self.article.slug)}-wrong/comments/{self.comment.id}/history",
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 404)
+
+    def test_list_comment_edit_history_no_comment(self):
+        self.client.credentials(
+            HTTP_AUTHORIZATION=f"Bearer {self.user2.token}"
+        )
+        response = self.client.get(
+            f"/api/articles/{str(self.article.slug)}/comments/{self.comment.id}34/history",
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 404)
+

@@ -1,7 +1,8 @@
+"""Module containing models related to the comments feature """
 from django.db import models
+from django.utils import timezone
 from authors.apps.profiles.models import Profile
 from authors.apps.articles.models import Article
-
 
 class Comment(models.Model):
     """Comment Model"""
@@ -26,3 +27,9 @@ class CommentLikeDislike(models.Model):
 
     def __str__(self):
         return self.like
+
+class CommentEditHistory(models.Model):
+    """Model for collecting edited history of the comments"""
+    original_comment = models.ForeignKey(Comment, on_delete=models.CASCADE)
+    edited_comment = models.TextField(null=True)
+    edited_time = models.DateTimeField(default=timezone.now)
