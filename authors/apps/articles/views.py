@@ -1,4 +1,5 @@
 import readtime
+from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.sites.shortcuts import get_current_site
 from django.core.mail import EmailMultiAlternatives
 from django.db.models import Q
@@ -30,7 +31,7 @@ from .serializers import (
     FavoriteArticleSerializer,
     EmailSerializer,
 )
-
+from authors.apps.reports.models import ReportArticle
 
 class ListCreateArticlesView(APIView, CustomPaginationMixin):
     """
@@ -216,10 +217,15 @@ class RetrieveUpdateDeleteArticleView(APIView):
                 Article, id=article_id, delete_status=False
             )
             article.delete()
-            return Response(
-                {"messege": "article deleted successfully"},
-                status=status.HTTP_200_OK,
-            )
+            return Response({"messege": "article deleted successfully"}, status=status.HTTP_200_OK)
+        if current_user.is_superuser:
+            try:
+                reported_article = ReportArticle.objects.get(article=article.slug, report_status="resolved")
+                article.delete_status = True
+                article.save()
+                return Response({"message": "Reported article has been deleted successfully"})
+            except ObjectDoesNotExist:
+                return Response({"error": "No proof yet that this article has violated any terms of service"}, status=status.HTTP_403_FORBIDDEN)
         return Response(
             {"error": "you cannot delete an article created by another user"},
             status=status.HTTP_401_UNAUTHORIZED,
