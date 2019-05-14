@@ -5,6 +5,7 @@ from django.template.loader import render_to_string
 from authors.apps.authentication.models import User
 from authors.apps.articles.models import Article, FavoriteArticle
 from authors.apps.author_follows.models import AuthorFollowing
+from authors.apps.article_likes.models import ArticleLike
 from authors.apps.comments.models import Comment
 from django.db.models.signals import post_save
 
@@ -26,7 +27,7 @@ def notifier_check(sender, instance, **kwargs):
         create_notifier = Notifier.objects.create(
             user=instance
         )
-        create_notifier.save()   
+        create_notifier.save()  
 
 def save_notification(sender, instance, **kwargs):
     """
@@ -87,7 +88,62 @@ def save_notification(sender, instance, **kwargs):
                     )
                 }
                 notification_email(email_body, context)
-            
+
+def author_notification(sender, instance, **kwargs):
+    receiver = ""
+    notification_msg = ""
+    link = ""
+    email_body = {}
+    email_body["subject"] = "Author's Haven Notifications"
+    if isinstance(instance, ArticleLike):
+        article = Article.objects.filter(id=instance.article.id).first()
+        receiver = article.author
+        notification_msg = 'Your article "{}" has been liked by {}'.format(article.title, instance.liked_by.username)
+        link = "{}/api/articles/{}/".format(settings.WEB_HOST, article.id)
+    
+    if isinstance(instance, FavoriteArticle):
+        article = Article.objects.filter(id=instance.article.id).first()
+        receiver = article.author
+        notification_msg = 'Your article "{}" is among {}\'s favorites.'.format(
+            article.title,
+            instance.favorited_by.username
+        ) 
+        link = "{}/api/articles/{}/".format(settings.WEB_HOST, article.id)
+
+    if isinstance(instance, AuthorFollowing):
+        receiver = instance.following
+        notification_msg = 'You have been followed by {}'.format(instance.follower)
+        link = "{}/api/profiles/{}/".format(
+            settings.WEB_HOST,
+            instance.follower
+        )
+    if nofify_checker(receiver):
+        notification = Notification.objects.create(
+            receiver=receiver,
+            body=notification_msg,
+            link=link
+        )
+        notification.save()
+        email_body["receipient"] = receiver.email
+        email_body["notification"] = notification_msg
+        context = {
+            "username": receiver.username,
+            "notification_msg": email_body["notification"],
+            "object_url": link
+        }
+        notification_email(email_body, context)
+
+
+    
+def nofify_checker(user):
+    """
+    this method is used to check if the user can be notified or not
+    """
+    notify = Notifier.objects.filter(user=user).first()
+    if notify.status:
+        return True
+    return False
+
 def notification_email(email_body, context):
     template_name = "notification.html"
     html_content = render_to_string(template_name, context)
@@ -103,5 +159,7 @@ def notification_email(email_body, context):
 post_save.connect(save_notification, sender=Article)
 post_save.connect(save_notification, sender=Comment)
 post_save.connect(notifier_check, sender=User)
-
+post_save.connect(author_notification, sender=ArticleLike)
+post_save.connect(author_notification, sender=FavoriteArticle)
+post_save.connect(author_notification, sender=AuthorFollowing)
 
