@@ -41,6 +41,8 @@ from .serializers import (
     PasswordSerializer,
 )
 
+from django.shortcuts import render
+
 
 @api_view()
 @permission_classes((IsAuthenticated,))
@@ -76,6 +78,9 @@ class RegistrationAPIView(APIView):
         send_account_activation_email(request, user)
 
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    def get(self, request):
+        return render(request, 'signup.html')
 
 
 class LoginAPIView(APIView):

@@ -1,4 +1,5 @@
 from django.urls import path, include
+from django.contrib.auth import views as auth_views
 
 from .views import (
     LoginAPIView,
@@ -21,7 +22,7 @@ urlpatterns = [
         name="activate_user_account",
     ),
     path('password_reset/',
-        include('django_rest_passwordreset.urls', 
+        include('django_rest_passwordreset.urls',
         namespace='password_reset')
     ),
     
@@ -30,4 +31,6 @@ urlpatterns = [
         PasswordResetView.as_view(),
         name="password_reset_verify_token",
     ),
+
+    path('oauth/', include('social_django.urls', namespace='social')),
 ]

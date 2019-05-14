@@ -51,4 +51,5 @@ urlpatterns = [
         name="schema-swagger-ui",
     ),
     path('api/', include('authors.apps.profiles.urls')),
+
 ]
