@@ -21,7 +21,7 @@ class FavoriteArticle(TestCase):
             username="author", email="author@andela.com", is_superuser=False, is_active=True
         )
         self.article_1 = Article.objects.create(
-            slug=create_slug(Article, "Article 1 title"),
+            slug=create_slug("Article 1 title"),
             title="Article 1 title",
             body="Article body",
             description="Article description",

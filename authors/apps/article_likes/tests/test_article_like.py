@@ -13,21 +13,21 @@ class TestArticleLikeViews(TestCase):
             username="Zack", email="zack@andela.com", is_superuser=False, is_active=True
         )
         self.article_1 = Article.objects.create(
-            slug=create_slug(Article, "title of article"),
+            slug=create_slug("title of article"),
             title="title of article",
             body="body of article",
             description="description of article",
             author=self.user
         )
         self.article_2 = Article.objects.create(
-            slug=create_slug(Article, "title of article 2"),
+            slug=create_slug("title of article 2"),
             title="title of article 2",
             body="body of article 2",
             description="description of article 2",
             author=self.user
         )
         self.article_3 = Article.objects.create(
-            slug=create_slug(Article, "title of article 3"),
+            slug=create_slug("title of article 3"),
             title="title of article 3",
             body="body of article 3",
             description="description of article 3",

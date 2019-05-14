@@ -13,6 +13,13 @@ class ArticleSerializer(serializers.ModelSerializer):
         queryset=ArticleTag.objects.all(),
         slug_field='tag_text'
     )
+    title = serializers.CharField(
+        required=True,
+        error_messages={
+            "required": "The title field is required",
+            "blank": "The title field cannot be left blank"
+        }
+    )
     read_stats = serializers.SerializerMethodField()
 
     def get_read_stats(self, instance):
@@ -72,3 +79,6 @@ class EmailSerializer(serializers.Serializer):
 
     class Meta:
         fields = ['email', ]
+
+class SlugSerializer(serializers.Serializer):
+    title = serializers.CharField(required=True)
