@@ -20,6 +20,14 @@ class TestUserRegistrationView(TestCase):
             is_active=True,
         )
 
+        self.weird_user = User.objects.create(
+            username="U$ername123",
+            email="innocent.lou@andela.com",
+            password="Pa$$word123",
+            is_superuser=False,
+            is_active=True,
+        )
+
     def test_email_is_sent(self):
         data = {"email": "bisonlou@gmail.com"}
         url = reverse("password_reset:reset-password-request")
@@ -49,6 +57,35 @@ class TestUserRegistrationView(TestCase):
         self.assertEqual(
             response.data["message"], "Password reset succesfully"
         )
+
+    def test_similar_username_password_reset(self):
+        token = ResetPasswordToken.objects.create(user=self.weird_user)
+
+        kwargs = {"token": token.key}
+
+        url = reverse("password_reset_verify_token", kwargs=kwargs)
+        data = {"password": "U$ername123"}
+
+        response = self.client.post(
+            url, data=json.dumps(data), content_type="application/json"
+        )
+
+        self.assertEqual(response.status_code, 400)
+
+    def test_password_containing_username_reset(self):
+        token = ResetPasswordToken.objects.create(user=self.weird_user)
+
+        kwargs = {"token": token.key}
+
+        url = reverse("password_reset_verify_token", kwargs=kwargs)
+        data = {"password": "U$ername123456"}
+
+        response = self.client.post(
+            url, data=json.dumps(data), content_type="application/json"
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.data['message'], "Your password should not be the same as or contain your username")
 
     def test_invalid_token(self):
         token = ResetPasswordToken.objects.create(user=self.user)

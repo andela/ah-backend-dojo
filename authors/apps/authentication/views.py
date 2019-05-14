@@ -6,10 +6,7 @@ from django.contrib.auth.tokens import default_token_generator
 from django.conf import settings
 from django.utils.encoding import force_bytes, force_text
 
-from django.utils.http import (
-    urlsafe_base64_encode,
-    urlsafe_base64_decode
-)
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
 from django.dispatch import receiver
@@ -218,7 +215,8 @@ class PasswordResetView(APIView):
     def post(self, request, *args, **kwargs):
         serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
-        token = kwargs['token']
+
+        token = kwargs["token"]
         password = serializer.validated_data["password"]
 
         # get token validation time
@@ -246,6 +244,18 @@ class PasswordResetView(APIView):
             reset_password_token.delete()
             return Response(
                 {"error": "Token expired"}, status=status.HTTP_400_BAD_REQUEST
+            )
+
+        username = reset_password_token.user.username
+        if username.lower() in password.lower():
+            return Response(
+                {
+                    "message": (
+                        "Your password should not be the same as or contain "
+                        "your username"
+                    )
+                },
+                status.HTTP_400_BAD_REQUEST,
             )
 
         reset_password_token.user.set_password(password)
@@ -276,9 +286,7 @@ def password_reset_token_created(
         "username": reset_password_token.user.username,
         "email": reset_password_token.user.email,
         "reset_password_url": "{}{}{}".format(
-            settings.WEB_HOST,
-            "/api/reset-password/",
-            reset_password_token.key,
+            settings.WEB_HOST, "/api/reset-password/", reset_password_token.key
         ),
     }
 
@@ -302,21 +310,21 @@ def send_email(**kwargs):
     email.attach_alternative(html_content, "text/html")
     email.send()
 
-class GoogleView(APIView):# pragma: no cover
-        
+
+class GoogleView(APIView):  # pragma: no cover
+
     permission_classes = (AllowAny,)
     renderer_classes = (UserJSONRenderer,)
     serializer_class = GoogleSerializer
 
     @swagger_auto_schema(
-            operation_description="Login a User using Google.",
-            operation_id="Login a user using google",
-            request_body=serializer_class,
-            responses={201: serializer_class(many=False), 400: "BAD REQUEST"},
+        operation_description="Login a User using Google.",
+        operation_id="Login a user using google",
+        request_body=serializer_class,
+        responses={201: serializer_class(many=False), 400: "BAD REQUEST"},
     )
-
     def post(self, request):
-        user = request.data.get('user', {})
+        user = request.data.get("user", {})
 
         serializer = self.serializer_class(data=user)
         serializer.is_valid(raise_exception=True)
@@ -324,24 +332,22 @@ class GoogleView(APIView):# pragma: no cover
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-class FacebookView(APIView):# pragma: no cover
-    
+class FacebookView(APIView):  # pragma: no cover
+
     permission_classes = (AllowAny,)
     renderer_classes = (UserJSONRenderer,)
     serializer_class = FacebookSerializer
 
     @swagger_auto_schema(
-            operation_description="Login a User using Facebook.",
-            operation_id="Login a user using facebook",
-            request_body=serializer_class,
-            responses={201: serializer_class(many=False), 400: "BAD REQUEST"},
+        operation_description="Login a User using Facebook.",
+        operation_id="Login a user using facebook",
+        request_body=serializer_class,
+        responses={201: serializer_class(many=False), 400: "BAD REQUEST"},
     )
-
     def post(self, request):
-        user = request.data.get('user', {})
+        user = request.data.get("user", {})
 
         serializer = self.serializer_class(data=user)
         serializer.is_valid(raise_exception=True)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
-
