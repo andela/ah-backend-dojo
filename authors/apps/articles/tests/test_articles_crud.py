@@ -22,6 +22,10 @@ class TestArticleViews(TransactionTestCase):
         self.user_2 = User.objects.get(username="author")
         self.article_1 = Article.objects.get(id=1)
 
+        self.user_admin = User.objects.create(
+            username="lamech", email="lamech@bg.com", is_superuser=True, is_active=True
+        )
+
         self.article_2 = {
             "article": {
                 "title": "Article 2 title",
@@ -52,6 +56,11 @@ class TestArticleViews(TransactionTestCase):
                 "description": "Article description - edit",
                 "tagList": ["python", "java"],
             }
+        }
+
+        self.report_data = {
+            "violation_subject": "rules violation",
+            "violation_report": "heieijeei"
         }
 
     def test_create_an_article(self):
@@ -271,6 +280,52 @@ class TestArticleViews(TransactionTestCase):
         url = "/api/articles/65hg/"
         response = self.client.delete(url)
         self.assertEqual(response.status_code, 404)
+
+    def test_delete_an_article_violated_terms(self):
+        #create article by user
+        self.client.force_authenticate(user=self.user)
+        url = "/api/articles/"
+        response = self.client.post(
+            url,
+            content_type="application/json",
+            data=json.dumps(self.article_2),
+        )
+        article_id = response.data['article']['id']
+        slug_one = response.data['article']['slug']
+
+        # report article by user_2
+        report_article_url_post = f"{url}{slug_one}/report-article/"
+        self.client.force_authenticate(user=self.user_2)
+        self.client.post(
+            report_article_url_post, data=self.report_data, format='json'
+        )
+        report_articles_url = url + "report-article/"
+
+        # update report status and delete
+        response_report = self.client.get(
+            report_articles_url, format='json'
+        )
+        report_id = response_report.data.get('reports')[0].get('id')
+        report_data_2 = {"report_status": "resolved"}
+        self.client.force_authenticate(user=self.user_admin)
+        report_article_url = f"{url}report-article/{str(report_id)}/"
+        self.client.put(
+            report_article_url, data=report_data_2, format='json'
+        )
+        response = self.client.delete(f"{url}{article_id}/")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response.data["message"],
+            "Reported article has been deleted successfully")
+
+    def test_delete_an_article_hasnt_violated_terms(self):   
+        self.client.force_authenticate(user=self.user_admin)
+        url = f"/api/articles/{self.article_1.id}/"
+        response = self.client.delete(url)
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(
+            response.data["error"],
+            "No proof yet that this article has violated any terms of service")
 
     def test_filter_articles_by_author(self):
         self.client.force_authenticate(user=self.user)

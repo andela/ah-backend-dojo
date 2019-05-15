@@ -76,6 +76,7 @@ class ReportArticleViewSet (ModelViewSet):
                 and self.admin_rights(request):
                 data["violation_subject"] = reported_article.violation_subject
                 data["violation_report"] = reported_article.violation_report
+                data["report_status"] = request.data.get("report_status")
                 serializer = self.get_serializer(reported_article, data=data)
                 serializer.is_valid(raise_exception=True)
                 self.perform_update(serializer)
