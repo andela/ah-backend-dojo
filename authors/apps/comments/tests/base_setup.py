@@ -31,7 +31,7 @@ class BaseCommentTests(TestCase):
             body="Article body",
             description="Article description",
             author=self.user,
-            slug=create_slug(Article, "Article 1 title"),
+            slug=create_slug("Article 1 title"),
         )
         self.profile = Profile.objects.get(user=self.user)
 

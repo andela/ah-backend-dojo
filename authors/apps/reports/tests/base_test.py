@@ -48,8 +48,9 @@ class BaseTest(APITestCase):
         self.client.force_authenticate(user=self.user)
 
         response = self.client.post(self.articles_url, data=article_data, format='json')
+        slug_one = response.data["article"]["slug"]
+
         
-        slug_one = response.data.get("article").get("slug")
 
         self.report_articles_url = self.articles_url + "report-article/"
         self.report_article_url_post = self.articles_url + slug_one + "/report-article/"

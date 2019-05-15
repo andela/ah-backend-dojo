@@ -31,14 +31,14 @@ class TestBookmark(TransactionTestCase):
             body="Article body",
             description="Article description",
             author=self.user,
-            slug=create_slug(Article, "Article 1 title"),
+            slug=create_slug("Article 1 title"),
         )
         self.article2 = Article.objects.create(
             title="Article 2 title",
             body="Article body",
             description="Article description",
             author=self.user,
-            slug=create_slug(Article, "Article 2 title"),
+            slug=create_slug("Article 2 title"),
         )
         self.slug = self.article2.slug
 

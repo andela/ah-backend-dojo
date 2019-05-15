@@ -12,7 +12,6 @@ class ArticleTagViewSet(ModelViewSet):
     def create_tag_if_not_exist(self, provided_tags):
         """method to create a tag if it doesn't exist"""
         unique_tags = {tag.lower() for tag in provided_tags}
-        print(unique_tags)
         for provided_tag in unique_tags:
             try:
                 ArticleTag.objects.get(tag_text=provided_tag.lower())

@@ -32,6 +32,9 @@ from .serializers import (
     EmailSerializer,
 )
 from authors.apps.reports.models import ReportArticle
+from .serializers import ArticleSerializer, FavoriteArticleSerializer, EmailSerializer, SlugSerializer
+from authors.apps.authentication.models import User
+from authors.apps.authentication.serializers import UserSerializer 
 
 class ListCreateArticlesView(APIView, CustomPaginationMixin):
     """
@@ -99,7 +102,10 @@ class ListCreateArticlesView(APIView, CustomPaginationMixin):
         data = request.data.get("article", {})
         current_user = request.user
 
-        data["slug"] = create_slug(Article, data["title"])
+        serializer = SlugSerializer(data=data)
+        serializer.is_valid(raise_exception=True)
+
+        data["slug"] = create_slug(data["title"])
         data["author"] = current_user.username
         data["time_to_read"] = get_time_to_read(data.get("body"))
 
@@ -110,14 +116,13 @@ class ListCreateArticlesView(APIView, CustomPaginationMixin):
         data["tagList"] = tag_list
 
         serializer = ArticleSerializer(data=data)
-        if serializer.is_valid():
-            serializer.save()
-            article = dict(serializer.data)
-            article["likeCount"] = [like_grand_count(article)]
-            return Response({"article": article}, status.HTTP_201_CREATED)
+        serializer.is_valid(raise_exception=True)
 
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        serializer.save()
+        article = dict(serializer.data)
+        article['likeCount'] = [like_grand_count(article)]
 
+        return Response({"article": article}, status.HTTP_201_CREATED)
 
 class RetrieveUpdateDeleteArticleView(APIView):
     """
@@ -171,7 +176,7 @@ class RetrieveUpdateDeleteArticleView(APIView):
         if current_user.username == author:
             json_data = request.data["article"]
             article_data["updatedAt"] = timezone.now()
-            article_data["slug"] = create_slug(Article, article_data["title"])
+            article_data["slug"] = create_slug(article_data['title'])
             article_data["title"] = json_data.get("title")
             article_data["body"] = json_data.get("body")
             article_data["description"] = json_data.get("description")

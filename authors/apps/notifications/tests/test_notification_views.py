@@ -24,7 +24,7 @@ class TestAuthorFollowViews(TestCase):
             following=self.author 
         )
         self.article = Article.objects.create(
-            slug=create_slug(Article, "title of article"),
+            slug=create_slug("title of article"),
             title="title of article",
             body="body of article",
             description="description of article",
