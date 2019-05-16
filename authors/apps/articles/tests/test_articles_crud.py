@@ -23,7 +23,10 @@ class TestArticleViews(TransactionTestCase):
         self.article_1 = Article.objects.get(id=1)
 
         self.user_admin = User.objects.create(
-            username="lamech", email="lamech@bg.com", is_superuser=True, is_active=True
+            username="lamech",
+            email="lamech@bg.com",
+            is_superuser=True,
+            is_active=True,
         )
 
         self.article_2 = {
@@ -60,7 +63,7 @@ class TestArticleViews(TransactionTestCase):
 
         self.report_data = {
             "violation_subject": "rules violation",
-            "violation_report": "heieijeei"
+            "violation_report": "heieijeei",
         }
 
     def test_create_an_article(self):
@@ -162,9 +165,6 @@ class TestArticleViews(TransactionTestCase):
     def test_first_time_read_by_authenticated_user_should_increase_the_read_count(
         self
     ):
-        ReadingStats.objects.create(
-            article=self.article_1, user=self.user_2, views=1, reads=0
-        )
 
         self.client.force_authenticate(user=self.user_2)
         url = f"/api/articles/{self.article_1.id}/read_stat/"
@@ -172,7 +172,7 @@ class TestArticleViews(TransactionTestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(
             response.data["message"],
-            f"Your read statistics for article with id {self.article_1.id} registered successfully",
+            f"Your read statistics for article with id {self.article_1.id} were registered successfully",
         )
 
         count = ReadingStats.objects.get(
@@ -195,7 +195,7 @@ class TestArticleViews(TransactionTestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(
             response.data["message"],
-            f"Your read statistics for article with id {self.article_1.id} registered successfully",
+            f"Your read statistics for article with id {self.article_1.id} are already registered successfully",
         )
 
         count = ReadingStats.objects.get(
@@ -282,7 +282,7 @@ class TestArticleViews(TransactionTestCase):
         self.assertEqual(response.status_code, 404)
 
     def test_delete_an_article_violated_terms(self):
-        #create article by user
+        # create article by user
         self.client.force_authenticate(user=self.user)
         url = "/api/articles/"
         response = self.client.post(
@@ -290,74 +290,38 @@ class TestArticleViews(TransactionTestCase):
             content_type="application/json",
             data=json.dumps(self.article_2),
         )
-        article_id = response.data['article']['id']
-        slug_one = response.data['article']['slug']
+        article_id = response.data["article"]["id"]
+        slug_one = response.data["article"]["slug"]
 
         # report article by user_2
         report_article_url_post = f"{url}{slug_one}/report-article/"
         self.client.force_authenticate(user=self.user_2)
         self.client.post(
-            report_article_url_post, data=self.report_data, format='json'
+            report_article_url_post, data=self.report_data, format="json"
         )
         report_articles_url = url + "report-article/"
 
         # update report status and delete
-        response_report = self.client.get(
-            report_articles_url, format='json'
-        )
-        report_id = response_report.data.get('reports')[0].get('id')
-        report_data_2 = {"report_status": "resolved"}
+        response_report = self.client.get(report_articles_url, format="json")
+        report_id = response_report.data.get("reports")[0].get("id")
+        report_data_2 = {"report_status": "allegations_true"}
         self.client.force_authenticate(user=self.user_admin)
         report_article_url = f"{url}report-article/{str(report_id)}/"
-        self.client.put(
-            report_article_url, data=report_data_2, format='json'
-        )
+        self.client.put(report_article_url, data=report_data_2, format="json")
         response = self.client.delete(f"{url}{article_id}/")
+
         self.assertEqual(response.status_code, 200)
         self.assertEqual(
             response.data["message"],
-            "Reported article has been deleted successfully")
+            "Reported article has been deleted successfully",
+        )
 
-    def test_delete_an_article_hasnt_violated_terms(self):   
+    def test_delete_an_article_hasnt_violated_terms(self):
         self.client.force_authenticate(user=self.user_admin)
         url = f"/api/articles/{self.article_1.id}/"
         response = self.client.delete(url)
         self.assertEqual(response.status_code, 403)
         self.assertEqual(
             response.data["error"],
-            "No proof yet that this article has violated any terms of service")
-
-    def test_filter_articles_by_author(self):
-        self.client.force_authenticate(user=self.user)
-        url = f"/api/articles/?author=zack"
-        response = self.client.get(url)
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(
-            response.data["results"]["articles"][0]["author"], "zack"
+            "No proof yet that this article has violated any terms of service",
         )
-        self.assertEqual(response.data["count"], 4)
-
-    def test_filter_articles_by_tag(self):
-        self.client.force_authenticate(user=self.user)
-        url = f"/api/articles/?tag=javascript"
-        response = self.client.get(url)
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data["count"], 3)
-
-        url = f"/api/articles/?tag=python"
-        response = self.client.get(url)
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data["count"], 5)
-
-    def test_filter_articles_by_title(self):
-        self.client.force_authenticate(user=self.user)
-        url = f"/api/articles/?title=zen of python"
-        response = self.client.get(url)
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data["count"], 1)
-
-    def test_filter_articles_by_search(self):
-        self.client.force_authenticate(user=self.user)
-        url = f"/api/articles/?search=zen of python"
-        response = self.client.get(url)
-        self.assertEqual(response.status_code, 200)

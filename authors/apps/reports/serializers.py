@@ -17,9 +17,9 @@ class ReportArticleSerializer(HyperlinkedModelSerializer):
         return violation_subject
 
     def validate_report_status(self, report_status):
-        if report_status not in ["pending", "resolved", "under investigation", "dismissed"]:
+        if report_status not in ["pending", 'allegations_true', 'allegations_false', "under_investigation"]:
             raise ValidationError(
-                "status should be 'pending', 'resolved', 'under investigation' or 'dismissed'")
+                "status should be 'pending', 'allegations_true', 'allegations_false' or 'under_investigation'")
         return report_status
 
     class Meta:

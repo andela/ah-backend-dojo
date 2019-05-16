@@ -32,9 +32,15 @@ from .serializers import (
     EmailSerializer,
 )
 from authors.apps.reports.models import ReportArticle
-from .serializers import ArticleSerializer, FavoriteArticleSerializer, EmailSerializer, SlugSerializer
+from .serializers import (
+    ArticleSerializer,
+    FavoriteArticleSerializer,
+    EmailSerializer,
+    SlugSerializer,
+)
 from authors.apps.authentication.models import User
-from authors.apps.authentication.serializers import UserSerializer 
+from authors.apps.authentication.serializers import UserSerializer
+
 
 class ListCreateArticlesView(APIView, CustomPaginationMixin):
     """
@@ -46,7 +52,9 @@ class ListCreateArticlesView(APIView, CustomPaginationMixin):
     # Route protection
     permission_classes = (IsAuthenticatedOrReadOnly,)
     pagination_class = api_settings.DEFAULT_PAGINATION_CLASS
-    queryset = Article.objects.all().order_by("createdAt")
+    queryset = (
+        Article.objects.all().filter(delete_status=False).order_by("createdAt")
+    )
     serializer_class = ArticleSerializer
     filter_backends = (DjangoFilterBackend,)
     filterset_fields = ("author", "tag", "title", "body")
@@ -120,9 +128,10 @@ class ListCreateArticlesView(APIView, CustomPaginationMixin):
 
         serializer.save()
         article = dict(serializer.data)
-        article['likeCount'] = [like_grand_count(article)]
+        article["likeCount"] = [like_grand_count(article)]
 
         return Response({"article": article}, status.HTTP_201_CREATED)
+
 
 class RetrieveUpdateDeleteArticleView(APIView):
     """
@@ -176,7 +185,7 @@ class RetrieveUpdateDeleteArticleView(APIView):
         if current_user.username == author:
             json_data = request.data["article"]
             article_data["updatedAt"] = timezone.now()
-            article_data["slug"] = create_slug(article_data['title'])
+            article_data["slug"] = create_slug(article_data["title"])
             article_data["title"] = json_data.get("title")
             article_data["body"] = json_data.get("body")
             article_data["description"] = json_data.get("description")
@@ -222,15 +231,29 @@ class RetrieveUpdateDeleteArticleView(APIView):
                 Article, id=article_id, delete_status=False
             )
             article.delete()
-            return Response({"messege": "article deleted successfully"}, status=status.HTTP_200_OK)
+            return Response(
+                {"messege": "article deleted successfully"},
+                status=status.HTTP_200_OK,
+            )
         if current_user.is_superuser:
             try:
-                reported_article = ReportArticle.objects.get(article=article.slug, report_status="resolved")
+                reported_article = ReportArticle.objects.get(
+                    article=article.slug, report_status="allegations_true"
+                )
                 article.delete_status = True
                 article.save()
-                return Response({"message": "Reported article has been deleted successfully"})
+                return Response(
+                    {
+                        "message": "Reported article has been deleted successfully"
+                    }
+                )
             except ObjectDoesNotExist:
-                return Response({"error": "No proof yet that this article has violated any terms of service"}, status=status.HTTP_403_FORBIDDEN)
+                return Response(
+                    {
+                        "error": "No proof yet that this article has violated any terms of service"
+                    },
+                    status=status.HTTP_403_FORBIDDEN,
+                )
         return Response(
             {"error": "you cannot delete an article created by another user"},
             status=status.HTTP_401_UNAUTHORIZED,
@@ -425,20 +448,36 @@ class ArticleReadStatView(APIView):
             read_stats = ReadingStats.objects.get_or_create(
                 article=article, user=current_user
             )
-            
+            if read_stats[0].views == 1:
+                return Response(
+                    data={
+                        "message": (
+                            f"Your read statistics for article with id {article.id} "
+                            "are already registered successfully"
+                        )
+                    },
+                    status=status.HTTP_200_OK,
+                )
+
             read_stats[0].views = 1
             read_stats[0].reads = 1
             read_stats[0].save()
 
             return Response(
                 data={
-                    "message": f"Your read statistics for article with id {article.id} registered successfully"
+                    "message": (
+                        f"Your read statistics for article with id {article.id} "
+                        "were registered successfully"
+                    )
                 },
                 status=status.HTTP_200_OK,
             )
         return Response(
             data={
-                "message": f"Your Read statistics are not captured for an article you authored"
+                "message": (
+                    f"Your Read statistics are not captured for an article you "
+                    "authored"
+                )
             },
             status=status.HTTP_200_OK,
         )
