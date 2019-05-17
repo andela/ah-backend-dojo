@@ -22,6 +22,8 @@ class ReportArticleViewSet (ModelViewSet):
         if not request.user.is_superuser:
             self.queryset = ReportArticle.objects.all().filter(reporter=current_user)\
             .order_by('submission_date')
+        if request.user.is_superuser:
+            self.queryset = ReportArticle.objects.all().order_by('submission_date') 
         serializer = ReportArticleSerializer(self.queryset, many=True)
         return Response({"reports": serializer.data})
 

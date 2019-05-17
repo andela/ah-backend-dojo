@@ -72,6 +72,19 @@ class TestArticleReport(BaseTest):
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
+    def test_list_reports_author(self):
+        response = self.client.get(
+            f"{self.articles_url}report-article/" , format='json'
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_list_reports_admin(self):
+        self.client.force_authenticate(user=self.super_user)
+        response = self.client.get(
+            f"{self.articles_url}report-article/", format='json'
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
     def test_get_report_unauthorized(self):
         self.client.force_authenticate(user=self.user)
         response = self.client.get(
