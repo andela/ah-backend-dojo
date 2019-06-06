@@ -16,7 +16,7 @@ class ReportArticleViewSet (ModelViewSet):
     permission_classes = (IsAuthenticated,)
     queryset = ReportArticle.objects.all().order_by('submission_date')
     serializer_class = ReportArticleSerializer
-    
+
     def list(self, request):
         current_user = Profile.objects.get(user=request.user)
         if not request.user.is_superuser:
@@ -56,7 +56,7 @@ class ReportArticleViewSet (ModelViewSet):
 
             if article.author == self.request.user:
                 return Response({
-                    "error": "You are not allowed to report your own article" 
+                    "error": "You are not allowed to report your own article"
                 }, status=status.HTTP_403_FORBIDDEN)
             self.perform_create(serializer)
             return Response (serializer.data, status=status.HTTP_201_CREATED)
@@ -133,5 +133,3 @@ class ReportArticleViewSet (ModelViewSet):
             if given_option in myrequest.data:
                 return False
         return True
-
-

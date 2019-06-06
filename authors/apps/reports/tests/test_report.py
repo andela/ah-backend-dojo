@@ -1,6 +1,5 @@
-from rest_framework.test import APIClient, APITestCase
+
 from rest_framework import status
-from authors.apps.authentication.models import User
 from authors.apps.reports.tests.base_test import BaseTest
 
 class TestArticleReport(BaseTest):
@@ -132,7 +131,7 @@ class TestArticleReport(BaseTest):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_update_report_status_admin(self):
-        self.report_data_2 = {"report_status": "dismissed"}
+        self.report_data_2 = {"report_status": "allegations_false"}
         self.client.force_authenticate(user=self.super_user)
         response = self.client.put(
             self.report_article_url, data=self.report_data_2, format='json'
@@ -147,7 +146,7 @@ class TestArticleReport(BaseTest):
 
     def test_update_report_non_admin_failed(self):
         self.client.force_authenticate(user=self.super_user)
-        new_status = {"report_status": "resolved"}
+        new_status = {"report_status": "allegations_true"}
         self.client.put(
             self.report_article_url, data=new_status, format='json'
         )
