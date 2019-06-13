@@ -161,6 +161,8 @@ class TestUserRegistrationView(TestCase):
             content_type="application/json",
             data=json.dumps(self.user),
         )
+        print(response.data)
+
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.data['errors']['error'][0], "Your password should not be the same as or contain your username")
 
