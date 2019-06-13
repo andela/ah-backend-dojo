@@ -136,6 +136,8 @@ class User(AbstractBaseUser, PermissionsMixin):
         token = jwt.encode(
             {
                 "id": self.pk,
+                "username": self.get_short_name(),
+                "email": self.email,
                 "iat": datetime.utcnow(),
                 "exp": datetime.utcnow() + timedelta(hours=3),
             },
