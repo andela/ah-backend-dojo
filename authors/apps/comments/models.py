@@ -26,7 +26,7 @@ class CommentLikeDislike(models.Model):
     user = models.ForeignKey(Profile, on_delete=models.CASCADE)
 
     def __str__(self):
-        return self.like
+        return str(self.like)
 
 class CommentEditHistory(models.Model):
     """Model for collecting edited history of the comments"""
