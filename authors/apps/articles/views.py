@@ -96,7 +96,7 @@ class ListCreateArticlesView(APIView, CustomPaginationMixin):
             articles_list = []
 
             for article in all_articles:
-                article["likeCount"] = [like_grand_count(article)]
+                article["likeCount"] = like_grand_count(article)
                 articles_list.append(article)
             return self.get_paginated_response(
                 {

@@ -18,6 +18,7 @@ from .serializers import (
 from .models import (Comment, CommentLikeDislike, CommentEditHistory)
 from .permissions import IsOwnerOrReadOnly
 
+
 class ListCreateCommentView(APIView):
     permission_classes = [IsAuthenticatedOrReadOnly]
     serializer_class = CommentSerializer
@@ -37,7 +38,7 @@ class ListCreateCommentView(APIView):
         if "start_index" in comment and "end_index" in comment:
             is_data_valid = validateData(end_index, start_index, article)
             if is_data_valid == True:
-                #get the exact hightlighted value
+                # get the exact hightlighted value
                 article_section = article.body[start_index:end_index]
                 comment['highlighted_text'] = article_section
             else:
@@ -115,26 +116,51 @@ class UpdateDestroyCommentView(generics.RetrieveUpdateDestroyAPIView):
 
         if comment_data.author != user_profile:
             return Response(
-                data={"message": "You do not have permission to perform this action."}, 
+                data={"message": "You do not have permission to perform this action."},
                 status=status.HTTP_403_FORBIDDEN,
             )
 
         serializer = self.serializer_class(comment_data, data=update_data,
-            partial=True, context={"article": article})
+                                           partial=True, context={"article": article})
         serializer.is_valid(raise_exception=True)
         if comment_data.body == update_data["body"]:
             return Response(
-                data={"message": "Your comment is not new, make sure you change the comment body"}, 
+                data={
+                    "message": "Your comment is not new, make sure you change the comment body"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
         edited_comment = update_data["body"]
-        comment_history_data={"edited_comment": edited_comment, "original_comment": pk}
-        comment_history_serilizer = CommentEditHistorySerializer(data=comment_history_data)
+        comment_history_data = {
+            "edited_comment": edited_comment, "original_comment": pk}
+        comment_history_serilizer = CommentEditHistorySerializer(
+            data=comment_history_data)
         comment_history_serilizer.is_valid(raise_exception=True)
         comment_history_serilizer.save()
 
         serializer.save()
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+class LikeCommentStatus(generics.GenericAPIView):
+    permission_classes = (IsAuthenticatedOrReadOnly,)
+    queryset = CommentLikeDislike.objects.all()
+    serializer_class = CommentLikesDislikeSerializer
+
+    def get(self, request, **kwargs):
+        """Get the like state for a particular aunthenticated user"""
+        try:
+            current_user = request.user
+            user = Profile.objects.get(user=current_user)
+            user_id = user.id
+            comment_id = kwargs['pk']
+            comment = CommentLikeDislike.objects.get(comment_id=comment_id, user_id=user_id)
+            serializer = self.serializer_class(comment, many=False)
+            return Response({
+                "status": serializer.data.get("like")
+            })
+        except ObjectDoesNotExist:
+            return Response({
+                "status": "none",
+            })
 
 class LikeComment(generics.GenericAPIView):
     permission_classes = (IsAuthenticatedOrReadOnly,)
@@ -143,12 +169,12 @@ class LikeComment(generics.GenericAPIView):
 
     def get(self, request, **kwargs):
         """Get all like counts"""
-        comment = CommentLikeDislike.objects.filter(comment_id=kwargs['pk'])
+        comment = CommentLikeDislike.objects.filter(comment_id=kwargs['pk'], like=True)
         serializer = self.serializer_class(comment, many=True)
         return Response({
-                "likes": serializer.data,
-                "likesCount": len(serializer.data)
-            })
+            "likes": serializer.data,
+            "likesCount": len(serializer.data)
+        })
 
     def post(self, request, **kwargs):
         """Like a comment """
@@ -156,54 +182,84 @@ class LikeComment(generics.GenericAPIView):
         user = Profile.objects.get(user=current_user)
         user_id = user.id
         comment_id = kwargs['pk']
-        liked_comment = CommentLikeDislike.objects.filter(like=True)
-        liked_by = CommentLikeDislike.objects.filter(user_id=user_id)
-        if liked_comment and liked_by:
+        try:
+            mylike = CommentLikeDislike.objects.get(
+                comment_id=comment_id, like=True, user_id=user_id)
+            mylike.delete()
             return Response(
-                    data={"message": "You have already liked this comment"},
+                    data={"message": "You have successfully revoked your like on this comment"},
                     status=status.HTTP_200_OK,
                 )
+        except ObjectDoesNotExist:
+            try:
+                mylike = CommentLikeDislike.objects.get(
+                comment_id=comment_id, like=False, user_id=user_id)
+                mylike.like = True
+                mylike.save()
+                return Response(
+                        data={"message": "You now like this comment"},
+                        status=status.HTTP_200_OK,
+                    )
+            except ObjectDoesNotExist:
+                like_data = request.data.get("like", {})
+                serializer = self.serializer_class(data=like_data)
+                serializer.is_valid(raise_exception=True)
+                comment = Comment.objects.filter(id=comment_id).first()
+                serializer.save(comment=comment, user=user)
+                return Response(
+                        data={"message": "You have successfully liked this comment"},
+                        status=status.HTTP_200_OK,
+                    )
 
-        like_data = request.data.get("like", {})
-        serializer = self.serializer_class(data=like_data)
-        serializer.is_valid(raise_exception=True)
-        comment = Comment.objects.filter(id=comment_id).first()
-        serializer.save(comment=comment, user=user)
-        return Response({'message': 'You have liked this comment',
-                                  'Data': serializer.data},
-                                 status=status.HTTP_200_OK)
-
-
-class DislikeComment(generics.DestroyAPIView):
-    """view for deleting a dislike of a comment"""
-    permission_classes = [IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly]
+class DislikeComment (generics.GenericAPIView):
+    permission_classes = (IsAuthenticatedOrReadOnly,)
     queryset = CommentLikeDislike.objects.all()
     serializer_class = CommentLikesDislikeSerializer
 
-    def delete(self, request, **kwargs):
-        """
-        Dislike Comment
-        """
+    def get(self, request, **kwargs):
+        """Get all like counts"""
+        comment = CommentLikeDislike.objects.filter(comment_id=kwargs['pk'], like=False)
+        serializer = self.serializer_class(comment, many=True)
+        return Response({
+            "dislikes": serializer.data,
+            "dislikesCount": len(serializer.data)
+        })
+
+    def post(self, request, **kwargs):
+        """Like a comment """
         current_user = request.user
         user = Profile.objects.get(user=current_user)
         user_id = user.id
         comment_id = kwargs['pk']
-        queryset = CommentLikeDislike.objects.filter(
-            user_id=user_id,
-            comment_id=comment_id).first()
+        try:
+            mylike = CommentLikeDislike.objects.get(
+                comment_id=comment_id, like=False, user_id=user_id)
+            mylike.delete()
+            return Response(
+                    data={"message": "You have successfully revoked your dislike on this comment"},
+                    status=status.HTTP_200_OK,
+                )
+        except ObjectDoesNotExist:
+            try:
+                mylike = CommentLikeDislike.objects.get(
+                comment_id=comment_id, like=True, user_id=user_id)
+                mylike.like = False
+                mylike.save()
+                return Response(
+                        data={"message": "You now dislike this comment"},
+                        status=status.HTTP_200_OK,
+                    )
+            except ObjectDoesNotExist:
+                like_data = {"like": False}
+                serializer = self.serializer_class(data=like_data)
+                serializer.is_valid(raise_exception=True)
+                comment = Comment.objects.filter(id=comment_id).first()
+                serializer.save(comment=comment, user=user)
+                return Response(
+                        data={"message": "You have successfully disliked this comment"},
+                        status=status.HTTP_200_OK,
+                    )
 
-        serializer = CommentLikesDislikeSerializer(queryset)
-        comment_like_object = serializer.data
-        if comment_like_object and comment_like_object['like'] == True:
-            queryset.delete()
-            return Response({
-                "message": "Your like has been successfully revoked"
-                },status.HTTP_200_OK
-            )
-        return Response({
-            "message": "You have not liked this comment"},
-            status.HTTP_400_BAD_REQUEST,
-        )
 
 class CommentHistoryViewSet(ModelViewSet):
     """View for viewing the list of comment edit history"""
@@ -214,10 +270,12 @@ class CommentHistoryViewSet(ModelViewSet):
         try:
             Article.objects.get(slug=kwargs.get("slug"))
             Comment.objects.get(id=kwargs.get("pk"))
-            queryset = CommentEditHistory.objects.all().filter(original_comment=kwargs.get("pk"))
-            serializer = CommentEditHistorySerializer(queryset, many=True,context={'request': request})
+            queryset = CommentEditHistory.objects.all().filter(
+                original_comment=kwargs.get("pk"))
+            serializer = CommentEditHistorySerializer(
+                queryset, many=True, context={'request': request})
             return Response(serializer.data)
         except ObjectDoesNotExist:
             return Response({"error": "Article or comment doesn't exist"},
-             status=status.HTTP_404_NOT_FOUND
-            )
+                            status=status.HTTP_404_NOT_FOUND
+                            )

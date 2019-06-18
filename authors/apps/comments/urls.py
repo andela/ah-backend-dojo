@@ -2,7 +2,7 @@
 from django.urls import path
 from authors.apps.comments.views import (
     ListCreateCommentView, UpdateDestroyCommentView,
-    LikeComment, DislikeComment, CommentHistoryViewSet
+    LikeComment, LikeCommentStatus, DislikeComment, CommentHistoryViewSet
 )
 
 urlpatterns = [
@@ -18,6 +18,8 @@ urlpatterns = [
     ),
     path('comments/<int:pk>/like',
          LikeComment.as_view()),
+    path('comments/<int:pk>/likestatus',
+         LikeCommentStatus.as_view()),
     path('comments/<int:pk>/dislike',
          DislikeComment.as_view()),
     path('comments/<int:pk>/history',

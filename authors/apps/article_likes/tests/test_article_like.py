@@ -95,3 +95,17 @@ class TestArticleLikeViews(TestCase):
         url = f"/api/articles/{self.article_2.slug}/dislidfdfsdfke"
         response = self.client.post(url)
         self.assertEqual(response.status_code, 400)
+
+    def test_article_get_like_status(self):
+        self.client.force_authenticate(user=self.user)
+        url = f"/api/articles/{self.article_1.slug}/like"
+        self.client.post(url)
+        url_like_status = f"/api/articles/{self.article_1.slug}/likestatus/"
+        response  = self.client.get(url_like_status)
+        self.assertEqual(response.status_code, 200)
+
+    def test_article_get_like_none(self):
+        self.client.force_authenticate(user=self.user)
+        url_like_status = f"/api/articles/{self.article_1.slug}/likestatus/"
+        response  = self.client.get(url_like_status)
+        self.assertEqual(response.status_code, 200)

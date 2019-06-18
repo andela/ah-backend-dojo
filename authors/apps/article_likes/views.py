@@ -1,6 +1,7 @@
 from django.shortcuts import get_object_or_404
+from django.core.exceptions import ObjectDoesNotExist
 from django.utils import timezone
-from rest_framework import status
+from rest_framework import status, generics
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -9,6 +10,31 @@ from authors.apps.articles.serializers import ArticleSerializer
 from .models import ArticleLike
 from authors.apps.articles.extra_methods import endpoint_redirect
 from .serializers import ArticleLikeSerializer
+from authors.apps.profiles.models import Profile
+
+class LikeArticleStatus(generics.GenericAPIView):
+    # permission_classes = (IsAuthenticatedOrReadOnly,)
+    queryset = ArticleLike.objects.all()
+    serializer_class = ArticleLikeSerializer
+
+    def get(self, request, **kwargs):
+        """Get specific like for a particular authenticated user"""
+        try:
+            current_user = request.user
+            user = Profile.objects.get(user=current_user)
+            user_name = user.user
+            article_slug = kwargs['slug']
+            article = Article.objects.get(slug=article_slug)
+            articleLike = ArticleLike.objects.get(article_id=article.id, liked_by_id=user_name)
+            print(articleLike)
+            serializer = self.serializer_class(articleLike, many=False)
+            return Response({
+                "status": serializer.data.get("like_value"),
+            })
+        except ObjectDoesNotExist:
+            return Response({
+                "status": "none",
+            })
 
 class ArticleLikesDislikesViews(APIView):
     """
