@@ -61,7 +61,7 @@ class TestBookmark(TransactionTestCase):
         self.assertEqual(response.status_code, 403)
         self.assertEqual(response.data, self.auth_error)
 
-    def test_authenticated_user_cannot_add_a_bookmark_with_invalid_article_slugdserv(
+    def test_authenticated_user_cannot_add_a_bookmark_with_invalid_article_slug(
         self
     ):
         self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {self.user.token}")
@@ -112,3 +112,25 @@ class TestBookmark(TransactionTestCase):
             response.data["message"],
             "Article has been unBookmarked Successfully",
         )
+
+    def test_unauthenticated_user_cannot_check_bookmark_status(self):
+        response = self.client.get("/api/articles/{slug}/bookmark_status/")
+
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.data, self.auth_error)
+
+    def test_authenticated_user_can_check_bookmark_status(self):
+        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {self.user.token}")
+        self.client.post(f"/api/articles/{self.slug}/bookmark/")
+
+        response = self.client.get(f"/api/articles/{self.slug}/bookmark_status/")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['isBookmarked'], True)
+
+    def test_isBookmarked_is_false_when_the_article_is_not_bookmarked(self):
+        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {self.user2.token}")
+        response = self.client.get(f"/api/articles/{self.slug}/bookmark_status/")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['isBookmarked'], False)

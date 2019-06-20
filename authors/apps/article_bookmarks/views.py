@@ -50,6 +50,39 @@ class CreateDestroyBookmarksView(APIView):
         )
 
 
+class RetrieveBookmarkStatusView(APIView):
+    """
+        get:
+        Get the status of a user's article bookmark
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        current_user = request.user
+        slug = kwargs["slug"]
+
+        article = get_object_or_404(Article, slug=slug)
+
+        # get bookmarks for this user and article
+        user_bookmarks = Bookmark.objects.filter(
+            user=request.user.username,
+            article=article.id
+        )
+
+        bookmarked = False
+
+        if len(user_bookmarks) > 0:
+            bookmarked = True
+
+        return Response(
+            data={
+                "isBookmarked": bookmarked,
+            },
+            status=status.HTTP_200_OK,
+        )
+
+
 class ListBookmarksView(APIView):
     """
         get:
