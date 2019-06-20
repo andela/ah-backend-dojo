@@ -138,6 +138,11 @@ class TestDislikeAndLikeCommment(BaseCommentTests):
             content_type="application/json",
         )
 
+        self.client.get(
+            f"/api/articles/{self.article.slug}/comments/",
+            content_type="application/json",
+        )
+
         self.client.post(
             f"/api/articles/{self.article.slug}/comments/{comment_id}/dislike",
             content_type="application/json",

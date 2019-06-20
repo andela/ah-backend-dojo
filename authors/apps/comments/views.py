@@ -72,12 +72,31 @@ class ListCreateCommentView(APIView):
         queryset = Comment.objects.filter(article=article)
         serializer = self.serializer_class(queryset, many=True)
         comments = serializer.data
+        new_comment_lists = []
+        for comment in comments:
+            likeStatus = False
+            dislikeStatus = False
+            try:
+                current_user = request.user
+                user = Profile.objects.get(user=current_user)
+                user_id = user.id
+                comment_id = comment.get("id")
+                commentLikeState = CommentLikeDislike.objects.get(
+                    comment_id=comment_id, user_id=user_id)
+                serializer = CommentLikesDislikeSerializer(commentLikeState, many=False)
+                likeStatus = serializer.data.get("like")
+                dislikeStatus = (not likeStatus)
+            except ObjectDoesNotExist:
+                likeStatus = False
+                dislikeStatus = False
+            
+            comment["likeStatus"] = likeStatus
+            comment["dislikeStatus"] = dislikeStatus
 
         return Response(
             data={"comments": comments, "commentsCount": len(comments)},
             status=status.HTTP_200_OK,
         )
-
 
 class UpdateDestroyCommentView(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly]
@@ -140,6 +159,7 @@ class UpdateDestroyCommentView(generics.RetrieveUpdateDestroyAPIView):
         serializer.save()
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+
 class LikeCommentStatus(generics.GenericAPIView):
     permission_classes = (IsAuthenticatedOrReadOnly,)
     queryset = CommentLikeDislike.objects.all()
@@ -152,7 +172,8 @@ class LikeCommentStatus(generics.GenericAPIView):
             user = Profile.objects.get(user=current_user)
             user_id = user.id
             comment_id = kwargs['pk']
-            comment = CommentLikeDislike.objects.get(comment_id=comment_id, user_id=user_id)
+            comment = CommentLikeDislike.objects.get(
+                comment_id=comment_id, user_id=user_id)
             serializer = self.serializer_class(comment, many=False)
             return Response({
                 "status": serializer.data.get("like")
@@ -162,6 +183,7 @@ class LikeCommentStatus(generics.GenericAPIView):
                 "status": "none",
             })
 
+
 class LikeComment(generics.GenericAPIView):
     permission_classes = (IsAuthenticatedOrReadOnly,)
     queryset = CommentLikeDislike.objects.all()
@@ -169,7 +191,8 @@ class LikeComment(generics.GenericAPIView):
 
     def get(self, request, **kwargs):
         """Get all like counts"""
-        comment = CommentLikeDislike.objects.filter(comment_id=kwargs['pk'], like=True)
+        comment = CommentLikeDislike.objects.filter(
+            comment_id=kwargs['pk'], like=True)
         serializer = self.serializer_class(comment, many=True)
         return Response({
             "likes": serializer.data,
@@ -187,19 +210,20 @@ class LikeComment(generics.GenericAPIView):
                 comment_id=comment_id, like=True, user_id=user_id)
             mylike.delete()
             return Response(
-                    data={"message": "You have successfully revoked your like on this comment"},
-                    status=status.HTTP_200_OK,
-                )
+                data={
+                    "message": "You have successfully revoked your like on this comment"},
+                status=status.HTTP_200_OK,
+            )
         except ObjectDoesNotExist:
             try:
                 mylike = CommentLikeDislike.objects.get(
-                comment_id=comment_id, like=False, user_id=user_id)
+                    comment_id=comment_id, like=False, user_id=user_id)
                 mylike.like = True
                 mylike.save()
                 return Response(
-                        data={"message": "You now like this comment"},
-                        status=status.HTTP_200_OK,
-                    )
+                    data={"message": "You now like this comment"},
+                    status=status.HTTP_200_OK,
+                )
             except ObjectDoesNotExist:
                 like_data = request.data.get("like", {})
                 serializer = self.serializer_class(data=like_data)
@@ -207,9 +231,9 @@ class LikeComment(generics.GenericAPIView):
                 comment = Comment.objects.filter(id=comment_id).first()
                 serializer.save(comment=comment, user=user)
                 return Response(
-                        data={"message": "You have successfully liked this comment"},
-                        status=status.HTTP_200_OK,
-                    )
+                    data={"message": "You have successfully liked this comment"},
+                    status=status.HTTP_200_OK,
+                )
 
 class DislikeComment (generics.GenericAPIView):
     permission_classes = (IsAuthenticatedOrReadOnly,)
@@ -218,7 +242,8 @@ class DislikeComment (generics.GenericAPIView):
 
     def get(self, request, **kwargs):
         """Get all like counts"""
-        comment = CommentLikeDislike.objects.filter(comment_id=kwargs['pk'], like=False)
+        comment = CommentLikeDislike.objects.filter(
+            comment_id=kwargs['pk'], like=False)
         serializer = self.serializer_class(comment, many=True)
         return Response({
             "dislikes": serializer.data,
@@ -236,19 +261,20 @@ class DislikeComment (generics.GenericAPIView):
                 comment_id=comment_id, like=False, user_id=user_id)
             mylike.delete()
             return Response(
-                    data={"message": "You have successfully revoked your dislike on this comment"},
-                    status=status.HTTP_200_OK,
-                )
+                data={
+                    "message": "You have successfully revoked your dislike on this comment"},
+                status=status.HTTP_200_OK,
+            )
         except ObjectDoesNotExist:
             try:
                 mylike = CommentLikeDislike.objects.get(
-                comment_id=comment_id, like=True, user_id=user_id)
+                    comment_id=comment_id, like=True, user_id=user_id)
                 mylike.like = False
                 mylike.save()
                 return Response(
-                        data={"message": "You now dislike this comment"},
-                        status=status.HTTP_200_OK,
-                    )
+                    data={"message": "You now dislike this comment"},
+                    status=status.HTTP_200_OK,
+                )
             except ObjectDoesNotExist:
                 like_data = {"like": False}
                 serializer = self.serializer_class(data=like_data)
@@ -256,9 +282,9 @@ class DislikeComment (generics.GenericAPIView):
                 comment = Comment.objects.filter(id=comment_id).first()
                 serializer.save(comment=comment, user=user)
                 return Response(
-                        data={"message": "You have successfully disliked this comment"},
-                        status=status.HTTP_200_OK,
-                    )
+                    data={"message": "You have successfully disliked this comment"},
+                    status=status.HTTP_200_OK,
+                )
 
 
 class CommentHistoryViewSet(ModelViewSet):
