@@ -109,3 +109,11 @@ class TestArticleLikeViews(TestCase):
         url_like_status = f"/api/articles/{self.article_1.slug}/likestatus/"
         response  = self.client.get(url_like_status)
         self.assertEqual(response.status_code, 200)
+
+    def test_get_all_articles(self):
+        self.client.force_authenticate(user=self.user)
+        url = "/api/articles/"
+        url_like = f"/api/articles/{self.article_1.slug}/dislike"
+        self.client.post(url_like)
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)

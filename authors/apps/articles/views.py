@@ -22,6 +22,9 @@ from rest_framework.viewsets import ModelViewSet
 from authors.apps.article_tag.views import ArticleTagViewSet
 from authors.apps.authentication.models import User
 from authors.apps.authentication.serializers import UserSerializer
+from authors.apps.article_likes.serializers import ArticleLikeSerializer
+from authors.apps.article_likes.models import ArticleLike
+from authors.apps.profiles.models import Profile
 from .extra_methods import create_slug
 from .extra_methods import like_grand_count
 from .mixins import CustomPaginationMixin
@@ -97,6 +100,22 @@ class ListCreateArticlesView(APIView, CustomPaginationMixin):
 
             for article in all_articles:
                 article["likeCount"] = like_grand_count(article)
+                likeStatus = False
+                dislikeStatus = False
+
+                try:
+                    current_user = request.user
+                    user = Profile.objects.get(user=current_user)
+                    user_name = user.user
+                    articleLike = ArticleLike.objects.get(article_id=article.get("id"), liked_by_id=user_name)
+                    article_like_serializer = ArticleLikeSerializer(articleLike)
+                    likeStatus = article_like_serializer.data.get("like_value")
+                    dislikeStatus = (not likeStatus)
+                except ObjectDoesNotExist:
+                    likeStatus = False
+                    dislikeStatus = False
+                article["likeStatus"] = likeStatus
+                article["dislikeStatus"] = dislikeStatus
                 articles_list.append(article)
             return self.get_paginated_response(
                 {
