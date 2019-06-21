@@ -56,7 +56,8 @@ class ListCreateArticlesView(APIView, CustomPaginationMixin):
     permission_classes = (IsAuthenticatedOrReadOnly,)
     pagination_class = api_settings.DEFAULT_PAGINATION_CLASS
     queryset = (
-        Article.objects.all().filter(delete_status=False).order_by("createdAt")
+        Article.objects.all().filter(delete_status=False)
+        .order_by("-createdAt")
     )
     serializer_class = ArticleSerializer
     filter_backends = (DjangoFilterBackend,)
@@ -107,8 +108,10 @@ class ListCreateArticlesView(APIView, CustomPaginationMixin):
                     current_user = request.user
                     user = Profile.objects.get(user=current_user)
                     user_name = user.user
-                    articleLike = ArticleLike.objects.get(article_id=article.get("id"), liked_by_id=user_name)
-                    article_like_serializer = ArticleLikeSerializer(articleLike)
+                    articleLike = ArticleLike.objects.get(
+                        article_id=article.get("id"), liked_by_id=user_name)
+                    article_like_serializer = ArticleLikeSerializer(
+                        articleLike)
                     likeStatus = article_like_serializer.data.get("like_value")
                     dislikeStatus = (not likeStatus)
                 except ObjectDoesNotExist:

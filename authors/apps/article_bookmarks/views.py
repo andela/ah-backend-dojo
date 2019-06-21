@@ -108,7 +108,10 @@ class ListBookmarksView(APIView):
             bookmark["article"] = {}
             article = ArticleSerializer(article).data
             bookmark["article"]["id"] = article_id
+            bookmark["article"]["slug"] = article["slug"]
             bookmark["article"]["title"] = article["title"]
+            bookmark["article"]["author"] = article["author"]
+            bookmark["article"]["description"] = article["description"]
             bookmark["bookmarked_on"] = bookmark["bookmarked_on"]
             bookmark["article"][
                 "url"
