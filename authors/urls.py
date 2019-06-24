@@ -21,6 +21,7 @@ from rest_framework import permissions
 from rest_framework.routers import DefaultRouter
 
 from authors.apps.article_tag.views import ArticleTagViewSet
+from rest_framework.documentation import include_docs_urls
 
 schema_view = get_schema_view(
     openapi.Info(
@@ -49,11 +50,7 @@ urlpatterns = [
     path('api/authors/', include('authors.apps.author_follows.urls')),
     path('api/', include('authors.apps.article_bookmarks.urls')),
     path('api/', include('authors.apps.notifications.urls')),
-    path(
-        "docs/",
-        schema_view.with_ui("swagger", cache_timeout=0),
-        name="schema-swagger-ui",
-    ),
+    path('docs/', include_docs_urls(title='Authors Haven API')),
     path('api/', include('authors.apps.profiles.urls')),
     path('api/articles/', include('authors.apps.reports.urls')),
 ]
