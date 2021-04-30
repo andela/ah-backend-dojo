@@ -62,7 +62,7 @@ PyYAML==5.1
 readtime==1.1.1
 requests==2.21.0
 requests-oauthlib==1.2.0
-rsa==4.0
+rsa==4.7
 ruamel.yaml==0.15.94
 six==1.10.0
 soupsieve==1.9.1
